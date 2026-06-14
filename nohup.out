@@ -1,0 +1,828 @@
+Abriendo máscara original gigante...
+-> Creando máscara geométrica para: T20JKP...
+-> Creando máscara geométrica para: T19HGE...
+-> Creando máscara geométrica para: T20HLK...
+-> Creando máscara geométrica para: T20JLL...
+-> Creando máscara geométrica para: T20JNP...
+-> Creando máscara geométrica para: T19HGC...
+-> Creando máscara geométrica para: T20JMN...
+-> Creando máscara geométrica para: T20JKL...
+-> Creando máscara geométrica para: T20HKJ...
+-> Creando máscara geométrica para: T20HMH...
+-> Creando máscara geométrica para: T20JKM...
+-> Creando máscara geométrica para: T20HLJ...
+-> Creando máscara geométrica para: T20JMP...
+-> Creando máscara geométrica para: T20JML...
+-> Creando máscara geométrica para: T19JGG...
+-> Creando máscara geométrica para: T20HKG...
+-> Creando máscara geométrica para: T20HNJ...
+-> Creando máscara geométrica para: T20HNG...
+-> Creando máscara geométrica para: T20HMK...
+-> Creando máscara geométrica para: T20JNM...
+-> Creando máscara geométrica para: T20HMG...
+-> Creando máscara geométrica para: T20HMJ...
+-> Creando máscara geométrica para: T19JGH...
+-> Creando máscara geométrica para: T20JLP...
+-> Creando máscara geométrica para: T20JKN...
+-> Creando máscara geométrica para: T20HNK...
+-> Creando máscara geométrica para: T20JLM...
+-> Creando máscara geométrica para: T19HGD...
+-> Creando máscara geométrica para: T20JNL...
+-> Creando máscara geométrica para: T20HNH...
+-> Creando máscara geométrica para: T20JMM...
+-> Creando máscara geométrica para: T19JGF...
+-> Creando máscara geométrica para: T20HKK...
+-> Creando máscara geométrica para: T20HKH...
+-> Creando máscara geométrica para: T20HLH...
+-> Creando máscara geométrica para: T20HLG...
+-> Creando máscara geométrica para: T20JLN...
+-> Creando máscara geométrica para: T19HGB...
+-> Creando máscara geométrica para: T20JNN...
+
+¡PASO 1 FINALIZADO!
+Abriendo máscara original gigante...
+-> Creando máscara geométrica para: T20JKP...
+-> Creando máscara geométrica para: T19HGE...
+-> Creando máscara geométrica para: T20HLK...
+-> Creando máscara geométrica para: T20JLL...
+-> Creando máscara geométrica para: T20JNP...
+-> Creando máscara geométrica para: T19HGC...
+-> Creando máscara geométrica para: T20JMN...
+-> Creando máscara geométrica para: T20JKL...
+-> Creando máscara geométrica para: T20HKJ...
+-> Creando máscara geométrica para: T20HMH...
+-> Creando máscara geométrica para: T20JKM...
+-> Creando máscara geométrica para: T20HLJ...
+-> Creando máscara geométrica para: T20JMP...
+-> Creando máscara geométrica para: T20JML...
+-> Creando máscara geométrica para: T19JGG...
+-> Creando máscara geométrica para: T20HKG...
+-> Creando máscara geométrica para: T20HNJ...
+-> Creando máscara geométrica para: T20HNG...
+-> Creando máscara geométrica para: T20HMK...
+-> Creando máscara geométrica para: T20JNM...
+-> Creando máscara geométrica para: T20HMG...
+-> Creando máscara geométrica para: T20HMJ...
+-> Creando máscara geométrica para: T19JGH...
+-> Creando máscara geométrica para: T20JLP...
+-> Creando máscara geométrica para: T20JKN...
+-> Creando máscara geométrica para: T20HNK...
+-> Creando máscara geométrica para: T20JLM...
+-> Creando máscara geométrica para: T19HGD...
+-> Creando máscara geométrica para: T20JNL...
+-> Creando máscara geométrica para: T20HNH...
+-> Creando máscara geométrica para: T20JMM...
+-> Creando máscara geométrica para: T19JGF...
+-> Creando máscara geométrica para: T20HKK...
+-> Creando máscara geométrica para: T20HKH...
+-> Creando máscara geométrica para: T20HLH...
+-> Creando máscara geométrica para: T20HLG...
+-> Creando máscara geométrica para: T20JLN...
+-> Creando máscara geométrica para: T19HGB...
+-> Creando máscara geométrica para: T20JNN...
+
+¡PASO 1 FINALIZADO!
+
+Procesando conjunto: TRAIN
+  -> Extrayendo de T20HNJ - 20200307
+  -> Extrayendo de T20HNJ - 20200305
+  -> Extrayendo de T20HNJ - 20200322
+  -> Extrayendo de T20HNJ - 20200226
+  -> Extrayendo de T20HNJ - 20200730
+  -> Extrayendo de T20HNJ - 20200725
+  -> Extrayendo de T20HNJ - 20200224
+  -> Extrayendo de T20HNJ - 20200221
+  -> Extrayendo de T20HNJ - 20200728
+  -> Extrayendo de T20HNJ - 20200219
+  -> Extrayendo de T20HNJ - 20200229
+  -> Extrayendo de T20HNJ - 20200817
+  -> Extrayendo de T20HNJ - 20200802
+  -> Extrayendo de T20HNJ - 20200302
+  -> Extrayendo de T20HNJ - 20200812
+  -> Extrayendo de T20HNJ - 20200320
+  -> Extrayendo de T20HNJ - 20200824
+  -> Extrayendo de T20HNJ - 20200822
+  -> Extrayendo de T20JMP - 20200305
+  -> Extrayendo de T20JMP - 20200805
+  -> Extrayendo de T20JMP - 20200308
+  -> Extrayendo de T20JMP - 20200323
+  -> Extrayendo de T20JMP - 20200909
+  -> Extrayendo de T20JMP - 20200224
+  -> Extrayendo de T20JMP - 20200222
+  -> Extrayendo de T20JMP - 20200904
+  -> Extrayendo de T20JMP - 20200820
+  -> Extrayendo de T20JMP - 20200728
+  -> Extrayendo de T20JMP - 20200303
+  -> Extrayendo de T20JMP - 20200718
+  -> Extrayendo de T20JMP - 20200731
+  -> Extrayendo de T20JMP - 20200825
+  -> Extrayendo de T20JMP - 20200815
+  -> Extrayendo de T20JMP - 20200229
+  -> Extrayendo de T20JMP - 20200318
+  -> Extrayendo de T20JMP - 20200726
+  -> Extrayendo de T20JMP - 20200817
+  -> Extrayendo de T20JMP - 20200802
+  -> Extrayendo de T20JMP - 20200313
+  -> Extrayendo de T20JMP - 20200812
+  -> Extrayendo de T20JMP - 20200320
+  -> Extrayendo de T20JMP - 20200227
+  -> Extrayendo de T20JMP - 20200822
+  -> Extrayendo de T20JNM - 20200305
+  -> Extrayendo de T20JNM - 20200730
+  -> Extrayendo de T20JNM - 20200224
+  -> Extrayendo de T20JNM - 20200728
+  -> Extrayendo de T20JNM - 20200330
+  -> Extrayendo de T20JNM - 20200229
+  -> Extrayendo de T20JNM - 20200817
+  -> Extrayendo de T20JNM - 20200809
+  -> Extrayendo de T20JNM - 20200802
+  -> Extrayendo de T20JNM - 20200320
+  -> Extrayendo de T20JNM - 20200822
+  -> Extrayendo de T20HMH - 20200305
+  -> Extrayendo de T20HMH - 20200322
+  -> Extrayendo de T20HMH - 20200730
+  -> Extrayendo de T20HMH - 20200224
+  -> Extrayendo de T20HMH - 20200221
+  -> Extrayendo de T20HMH - 20200728
+  -> Extrayendo de T20HMH - 20200219
+  -> Extrayendo de T20HMH - 20200214
+  -> Extrayendo de T20HMH - 20200229
+  -> Extrayendo de T20HMH - 20200817
+  -> Extrayendo de T20HMH - 20200802
+  -> Extrayendo de T20HMH - 20200302
+  -> Extrayendo de T20HMH - 20200812
+  -> Extrayendo de T20HMH - 20200320
+  -> Extrayendo de T20HMH - 20200822
+  -> Extrayendo de T20HMH - 20200827
+  -> Extrayendo de T20HKK - 20200810
+  -> Extrayendo de T20HKK - 20200805
+  -> Extrayendo de T20HKK - 20200323
+  -> Extrayendo de T20HKK - 20200909
+  -> Extrayendo de T20HKK - 20200820
+  -> Extrayendo de T20HKK - 20200303
+  -> Extrayendo de T20HKK - 20200731
+  -> Extrayendo de T20HKK - 20200825
+  -> Extrayendo de T20HKK - 20200815
+  -> Extrayendo de T20HKK - 20200318
+  -> Extrayendo de T20HKK - 20200726
+  -> Extrayendo de T20HKK - 20200313
+  -> Extrayendo de T20HKK - 20200402
+  -> Extrayendo de T20HKK - 20200227
+  -> Extrayendo de T20JKP - 20200810
+  -> Extrayendo de T20JKP - 20200308
+  -> Extrayendo de T20JKP - 20200323
+  -> Extrayendo de T20JKP - 20200904
+  -> Extrayendo de T20JKP - 20200820
+  -> Extrayendo de T20JKP - 20200303
+  -> Extrayendo de T20JKP - 20200825
+  -> Extrayendo de T20JKP - 20200815
+  -> Extrayendo de T20JKP - 20200726
+  -> Extrayendo de T20JKP - 20200313
+  -> Extrayendo de T20JKP - 20200227
+  -> Extrayendo de T20JKP - 20200716
+  -> Extrayendo de T20HNK - 20200906
+  -> Extrayendo de T20HNK - 20200307
+  -> Extrayendo de T20HNK - 20200305
+  -> Extrayendo de T20HNK - 20200322
+  -> Extrayendo de T20HNK - 20200226
+  -> Extrayendo de T20HNK - 20200730
+  -> Extrayendo de T20HNK - 20200725
+  -> Extrayendo de T20HNK - 20200224
+  -> Extrayendo de T20HNK - 20200221
+  -> Extrayendo de T20HNK - 20200728
+  -> Extrayendo de T20HNK - 20200219
+  -> Extrayendo de T20HNK - 20200330
+  -> Extrayendo de T20HNK - 20200229
+  -> Extrayendo de T20HNK - 20200817
+  -> Extrayendo de T20HNK - 20200802
+  -> Extrayendo de T20HNK - 20200302
+  -> Extrayendo de T20HNK - 20200320
+  -> Extrayendo de T20HNK - 20200824
+  -> Extrayendo de T20HNK - 20200822
+  -> Extrayendo de T19HGC - 20200701
+  -> Extrayendo de T19HGC - 20200512
+  -> Extrayendo de T19HGC - 20200810
+  -> Extrayendo de T19HGC - 20200711
+  -> Extrayendo de T19HGC - 20200805
+  -> Extrayendo de T19HGC - 20201108
+  -> Extrayendo de T19HGC - 20200118
+  -> Extrayendo de T19HGC - 20200527
+  -> Extrayendo de T19HGC - 20200924
+  -> Extrayendo de T19HGC - 20200207
+  -> Extrayendo de T19HGC - 20200507
+  -> Extrayendo de T19HGC - 20200217
+  -> Extrayendo de T19HGC - 20201024
+  -> Extrayendo de T19HGC - 20200417
+rasterio._err.CPLE_AppDefinedError: ZIPDecode:Decoding error at scanline 0, incorrect header check
+
+The above exception was the direct cause of the following exception:
+
+rasterio._err.CPLE_AppDefinedError: TIFFReadEncodedTile() failed.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "rasterio/_io.pyx", line 969, in rasterio._io.DatasetReaderBase._read
+  File "rasterio/_io.pyx", line 199, in rasterio._io.io_multi_band
+  File "rasterio/_io.pyx", line 205, in rasterio._io.io_multi_band
+  File "rasterio/_err.pyx", line 325, in rasterio._err.StackChecker.exc_wrap_int
+rasterio._err.CPLE_AppDefinedError: T19HGC_20200417_B02.jp2, band 1: IReadBlock failed at X offset 0, Y offset 0: TIFFReadEncodedTile() failed.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home1/ferreyra/cordoba_ia_unne/src/02_extraer_parches.py", line 78, in <module>
+    b2 = src_b2.read(1, window=window)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "rasterio/_io.pyx", line 644, in rasterio._io.DatasetReaderBase.read
+  File "rasterio/_io.pyx", line 972, in rasterio._io.DatasetReaderBase._read
+rasterio.errors.RasterioIOError: Read failed. See previous exception for details.
+
+Procesando conjunto: TRAIN
+  -> Extrayendo de T20HNJ - 20200307
+  -> Extrayendo de T20HNJ - 20200305
+  -> Extrayendo de T20HNJ - 20200322
+  -> Extrayendo de T20HNJ - 20200226
+  -> Extrayendo de T20HNJ - 20200730
+  -> Extrayendo de T20HNJ - 20200725
+  -> Extrayendo de T20HNJ - 20200224
+  -> Extrayendo de T20HNJ - 20200221
+  -> Extrayendo de T20HNJ - 20200728
+  -> Extrayendo de T20HNJ - 20200219
+  -> Extrayendo de T20HNJ - 20200229
+  -> Extrayendo de T20HNJ - 20200817
+  -> Extrayendo de T20HNJ - 20200802
+  -> Extrayendo de T20HNJ - 20200302
+  -> Extrayendo de T20HNJ - 20200812
+  -> Extrayendo de T20HNJ - 20200320
+  -> Extrayendo de T20HNJ - 20200824
+  -> Extrayendo de T20HNJ - 20200822
+  -> Extrayendo de T20JMP - 20200305
+  -> Extrayendo de T20JMP - 20200805
+  -> Extrayendo de T20JMP - 20200308
+  -> Extrayendo de T20JMP - 20200323
+  -> Extrayendo de T20JMP - 20200909
+  -> Extrayendo de T20JMP - 20200224
+  -> Extrayendo de T20JMP - 20200222
+  -> Extrayendo de T20JMP - 20200904
+  -> Extrayendo de T20JMP - 20200820
+  -> Extrayendo de T20JMP - 20200728
+  -> Extrayendo de T20JMP - 20200303
+  -> Extrayendo de T20JMP - 20200718
+  -> Extrayendo de T20JMP - 20200731
+  -> Extrayendo de T20JMP - 20200825
+  -> Extrayendo de T20JMP - 20200815
+  -> Extrayendo de T20JMP - 20200229
+  -> Extrayendo de T20JMP - 20200318
+  -> Extrayendo de T20JMP - 20200726
+  -> Extrayendo de T20JMP - 20200817
+  -> Extrayendo de T20JMP - 20200802
+  -> Extrayendo de T20JMP - 20200313
+  -> Extrayendo de T20JMP - 20200812
+  -> Extrayendo de T20JMP - 20200320
+  -> Extrayendo de T20JMP - 20200227
+  -> Extrayendo de T20JMP - 20200822
+  -> Extrayendo de T20JNM - 20200305
+  -> Extrayendo de T20JNM - 20200730
+  -> Extrayendo de T20JNM - 20200224
+  -> Extrayendo de T20JNM - 20200728
+  -> Extrayendo de T20JNM - 20200330
+  -> Extrayendo de T20JNM - 20200229
+  -> Extrayendo de T20JNM - 20200817
+  -> Extrayendo de T20JNM - 20200809
+  -> Extrayendo de T20JNM - 20200802
+  -> Extrayendo de T20JNM - 20200320
+  -> Extrayendo de T20JNM - 20200822
+  -> Extrayendo de T20HMH - 20200305
+  -> Extrayendo de T20HMH - 20200322
+  -> Extrayendo de T20HMH - 20200730
+  -> Extrayendo de T20HMH - 20200224
+  -> Extrayendo de T20HMH - 20200221
+  -> Extrayendo de T20HMH - 20200728
+  -> Extrayendo de T20HMH - 20200219
+  -> Extrayendo de T20HMH - 20200214
+  -> Extrayendo de T20HMH - 20200229
+  -> Extrayendo de T20HMH - 20200817
+  -> Extrayendo de T20HMH - 20200802
+  -> Extrayendo de T20HMH - 20200302
+  -> Extrayendo de T20HMH - 20200812
+  -> Extrayendo de T20HMH - 20200320
+  -> Extrayendo de T20HMH - 20200822
+  -> Extrayendo de T20HMH - 20200827
+  -> Extrayendo de T20HKK - 20200810
+  -> Extrayendo de T20HKK - 20200805
+  -> Extrayendo de T20HKK - 20200323
+  -> Extrayendo de T20HKK - 20200909
+  -> Extrayendo de T20HKK - 20200820
+  -> Extrayendo de T20HKK - 20200303
+  -> Extrayendo de T20HKK - 20200731
+  -> Extrayendo de T20HKK - 20200825
+  -> Extrayendo de T20HKK - 20200815
+  -> Extrayendo de T20HKK - 20200318
+  -> Extrayendo de T20HKK - 20200726
+  -> Extrayendo de T20HKK - 20200313
+  -> Extrayendo de T20HKK - 20200402
+  -> Extrayendo de T20HKK - 20200227
+  -> Extrayendo de T20JKP - 20200810
+  -> Extrayendo de T20JKP - 20200308
+  -> Extrayendo de T20JKP - 20200323
+  -> Extrayendo de T20JKP - 20200904
+  -> Extrayendo de T20JKP - 20200820
+  -> Extrayendo de T20JKP - 20200303
+  -> Extrayendo de T20JKP - 20200825
+  -> Extrayendo de T20JKP - 20200815
+  -> Extrayendo de T20JKP - 20200726
+  -> Extrayendo de T20JKP - 20200313
+  -> Extrayendo de T20JKP - 20200227
+  -> Extrayendo de T20JKP - 20200716
+  -> Extrayendo de T20HNK - 20200906
+  -> Extrayendo de T20HNK - 20200307
+  -> Extrayendo de T20HNK - 20200305
+  -> Extrayendo de T20HNK - 20200322
+  -> Extrayendo de T20HNK - 20200226
+  -> Extrayendo de T20HNK - 20200730
+  -> Extrayendo de T20HNK - 20200725
+  -> Extrayendo de T20HNK - 20200224
+  -> Extrayendo de T20HNK - 20200221
+  -> Extrayendo de T20HNK - 20200728
+  -> Extrayendo de T20HNK - 20200219
+  -> Extrayendo de T20HNK - 20200330
+  -> Extrayendo de T20HNK - 20200229
+  -> Extrayendo de T20HNK - 20200817
+  -> Extrayendo de T20HNK - 20200802
+  -> Extrayendo de T20HNK - 20200302
+  -> Extrayendo de T20HNK - 20200320
+  -> Extrayendo de T20HNK - 20200824
+  -> Extrayendo de T20HNK - 20200822
+  -> Extrayendo de T19HGC - 20200701
+  -> Extrayendo de T19HGC - 20200512
+  -> Extrayendo de T19HGC - 20200810
+  -> Extrayendo de T19HGC - 20200711
+  -> Extrayendo de T19HGC - 20200805
+  -> Extrayendo de T19HGC - 20201108
+  -> Extrayendo de T19HGC - 20200118
+  -> Extrayendo de T19HGC - 20200527
+  -> Extrayendo de T19HGC - 20200924
+  -> Extrayendo de T19HGC - 20200207
+  -> Extrayendo de T19HGC - 20200507
+  -> Extrayendo de T19HGC - 20200217
+  -> Extrayendo de T19HGC - 20201024
+⚠️ Archivo corrupto detectado en T19HGC - 20200417. Saltando... (Detalle: Read failed. See previous exception for details.)
+  -> Extrayendo de T19HGC - 20200914
+  -> Extrayendo de T19HGC - 20200412
+  -> Extrayendo de T19HGC - 20201208
+⚠️ Archivo corrupto detectado en T19HGC - 20200308. Saltando... (Detalle: Read failed. See previous exception for details.)
+  -> Extrayendo de T19HGC - 20200323
+  -> Extrayendo de T19HGC - 20201014
+  -> Extrayendo de T19HGC - 20200123
+  -> Extrayendo de T19HGC - 20201029
+  -> Extrayendo de T19HGC - 20200919
+  -> Extrayendo de T19HGC - 20200909
+  -> Extrayendo de T19HGC - 20201223
+  -> Extrayendo de T19HGC - 20200108
+  -> Extrayendo de T19HGC - 20201118
+  -> Extrayendo de T19HGC - 20200422
+  -> Extrayendo de T19HGC - 20200611
+  -> Extrayendo de T19HGC - 20200502
+  -> Extrayendo de T19HGC - 20200517
+  -> Extrayendo de T19HGC - 20200222
+  -> Extrayendo de T19HGC - 20200522
+  -> Extrayendo de T19HGC - 20201103
+  -> Extrayendo de T19HGC - 20201123
+  -> Extrayendo de T19HGC - 20200904
+  -> Extrayendo de T19HGC - 20200820
+  -> Extrayendo de T19HGC - 20201004
+  -> Extrayendo de T19HGC - 20200103
+  -> Extrayendo de T19HGC - 20200616
+  -> Extrayendo de T19HGC - 20200929
+  -> Extrayendo de T19HGC - 20200706
+  -> Extrayendo de T19HGC - 20201228
+  -> Extrayendo de T19HGC - 20200303
+  -> Extrayendo de T19HGC - 20200626
+  -> Extrayendo de T19HGC - 20200731
+  -> Extrayendo de T19HGC - 20200825
+  -> Extrayendo de T19HGC - 20200815
+  -> Extrayendo de T19HGC - 20201218
+  -> Extrayendo de T19HGC - 20201019
+  -> Extrayendo de T19HGC - 20200601
+  -> Extrayendo de T19HGC - 20200427
+  -> Extrayendo de T19HGC - 20200128
+  -> Extrayendo de T19HGC - 20201009
+  -> Extrayendo de T19HGC - 20200202
+  -> Extrayendo de T19HGC - 20201213
+  -> Extrayendo de T19HGC - 20200113
+  -> Extrayendo de T19HGC - 20200318
+  -> Extrayendo de T19HGC - 20200328
+  -> Extrayendo de T19HGC - 20200726
+  -> Extrayendo de T19HGC - 20201203
+  -> Extrayendo de T19HGC - 20200606
+  -> Extrayendo de T19HGC - 20200212
+  -> Extrayendo de T19HGC - 20200621
+  -> Extrayendo de T19HGC - 20200407
+  -> Extrayendo de T19HGC - 20201128
+  -> Extrayendo de T19HGC - 20200313
+  -> Extrayendo de T19HGC - 20200402
+  -> Extrayendo de T19HGC - 20200227
+  -> Extrayendo de T19HGC - 20200716
+  -> Extrayendo de T19HGC - 20200830
+  -> Extrayendo de T19HGC - 20201113
+  -> Extrayendo de T20HLJ - 20200810
+  -> Extrayendo de T20HLJ - 20200305
+  -> Extrayendo de T20HLJ - 20200308
+  -> Extrayendo de T20HLJ - 20200323
+  -> Extrayendo de T20HLJ - 20200224
+  -> Extrayendo de T20HLJ - 20200820
+  -> Extrayendo de T20HLJ - 20200728
+  -> Extrayendo de T20HLJ - 20200303
+  -> Extrayendo de T20HLJ - 20200718
+  -> Extrayendo de T20HLJ - 20200731
+  -> Extrayendo de T20HLJ - 20200825
+  -> Extrayendo de T20HLJ - 20200219
+  -> Extrayendo de T20HLJ - 20200229
+  -> Extrayendo de T20HLJ - 20200318
+  -> Extrayendo de T20HLJ - 20200328
+  -> Extrayendo de T20HLJ - 20200726
+  -> Extrayendo de T20HLJ - 20200817
+  -> Extrayendo de T20HLJ - 20200802
+  -> Extrayendo de T20HLJ - 20200313
+  -> Extrayendo de T20HLJ - 20200812
+  -> Extrayendo de T20HLJ - 20200320
+  -> Extrayendo de T20HLJ - 20200402
+  -> Extrayendo de T20HLJ - 20200227
+  -> Extrayendo de T20HLJ - 20200716
+  -> Extrayendo de T20HLJ - 20200827
+  -> Extrayendo de T19HGE - 20200701
+  -> Extrayendo de T19HGE - 20200405
+  -> Extrayendo de T19HGE - 20200512
+  -> Extrayendo de T19HGE - 20201206
+  -> Extrayendo de T19HGE - 20200810
+  -> Extrayendo de T19HGE - 20200711
+  -> Extrayendo de T19HGE - 20200101
+  -> Extrayendo de T19HGE - 20200709
+  -> Extrayendo de T19HGE - 20200805
+  -> Extrayendo de T19HGE - 20200121
+  -> Extrayendo de T19HGE - 20201108
+  -> Extrayendo de T19HGE - 20200326
+  -> Extrayendo de T19HGE - 20200311
+  -> Extrayendo de T19HGE - 20200118
+  -> Extrayendo de T19HGE - 20200527
+  -> Extrayendo de T19HGE - 20200131
+  -> Extrayendo de T19HGE - 20201022
+  -> Extrayendo de T19HGE - 20200912
+  -> Extrayendo de T19HGE - 20200924
+  -> Extrayendo de T19HGE - 20200207
+  -> Extrayendo de T19HGE - 20200507
+  -> Extrayendo de T19HGE - 20200609
+  -> Extrayendo de T19HGE - 20200808
+  -> Extrayendo de T19HGE - 20200217
+  -> Extrayendo de T19HGE - 20200225
+  -> Extrayendo de T19HGE - 20201007
+  -> Extrayendo de T19HGE - 20201024
+  -> Extrayendo de T19HGE - 20200417
+  -> Extrayendo de T19HGE - 20200914
+  -> Extrayendo de T19HGE - 20200412
+⚠️ Archivo corrupto detectado en T19HGE - 20200917. Saltando... (Detalle: Read failed. See previous exception for details.)
+  -> Extrayendo de T19HGE - 20200724
+  -> Extrayendo de T19HGE - 20201208
+  -> Extrayendo de T19HGE - 20200308
+  -> Extrayendo de T19HGE - 20201221
+  -> Extrayendo de T19HGE - 20200323
+  -> Extrayendo de T19HGE - 20201014
+  -> Extrayendo de T19HGE - 20200123
+  -> Extrayendo de T19HGE - 20201029
+  -> Extrayendo de T19HGE - 20200919
+  -> Extrayendo de T19HGE - 20201106
+  -> Extrayendo de T19HGE - 20200909
+  -> Extrayendo de T19HGE - 20201116
+  -> Extrayendo de T19HGE - 20201223
+  -> Extrayendo de T19HGE - 20200210
+  -> Extrayendo de T19HGE - 20200321
+  -> Extrayendo de T19HGE - 20200301
+  -> Extrayendo de T19HGE - 20200108
+  -> Extrayendo de T19HGE - 20201118
+  -> Extrayendo de T19HGE - 20200422
+  -> Extrayendo de T19HGE - 20200611
+  -> Extrayendo de T19HGE - 20200818
+  -> Extrayendo de T19HGE - 20200502
+  -> Extrayendo de T19HGE - 20200517
+  -> Extrayendo de T19HGE - 20200222
+  -> Extrayendo de T19HGE - 20200714
+  -> Extrayendo de T19HGE - 20200530
+  -> Extrayendo de T19HGE - 20200619
+  -> Extrayendo de T19HGE - 20200522
+  -> Extrayendo de T19HGE - 20201103
+  -> Extrayendo de T19HGE - 20201012
+  -> Extrayendo de T19HGE - 20201111
+  -> Extrayendo de T19HGE - 20201123
+  -> Extrayendo de T19HGE - 20200904
+  -> Extrayendo de T19HGE - 20200719
+  -> Extrayendo de T19HGE - 20200820
+  -> Extrayendo de T19HGE - 20201004
+  -> Extrayendo de T19HGE - 20201002
+⚠️ Archivo corrupto detectado en T19HGE - 20200420. Saltando... (Detalle: Read failed. See previous exception for details.)
+  -> Extrayendo de T19HGE - 20200525
+  -> Extrayendo de T19HGE - 20200604
+  -> Extrayendo de T19HGE - 20200103
+  -> Extrayendo de T19HGE - 20200616
+  -> Extrayendo de T19HGE - 20200220
+  -> Extrayendo de T19HGE - 20200929
+  -> Extrayendo de T19HGE - 20200515
+  -> Extrayendo de T19HGE - 20200215
+  -> Extrayendo de T19HGE - 20200706
+  -> Extrayendo de T19HGE - 20201228
+  -> Extrayendo de T19HGE - 20200303
+  -> Extrayendo de T19HGE - 20200626
+  -> Extrayendo de T19HGE - 20200731
+  -> Extrayendo de T19HGE - 20200825
+  -> Extrayendo de T19HGE - 20200815
+  -> Extrayendo de T19HGE - 20201218
+  -> Extrayendo de T19HGE - 20201019
+  -> Extrayendo de T19HGE - 20200316
+  -> Extrayendo de T19HGE - 20201231
+  -> Extrayendo de T19HGE - 20200430
+  -> Extrayendo de T19HGE - 20200601
+  -> Extrayendo de T19HGE - 20200505
+  -> Extrayendo de T19HGE - 20200813
+  -> Extrayendo de T19HGE - 20200427
+  -> Extrayendo de T19HGE - 20201216
+  -> Extrayendo de T19HGE - 20200128
+  -> Extrayendo de T19HGE - 20201126
+  -> Extrayendo de T19HGE - 20201009
+  -> Extrayendo de T19HGE - 20200202
+  -> Extrayendo de T19HGE - 20201213
+  -> Extrayendo de T19HGE - 20200614
+  -> Extrayendo de T19HGE - 20200113
+  -> Extrayendo de T19HGE - 20200318
+  -> Extrayendo de T19HGE - 20200415
+  -> Extrayendo de T19HGE - 20200328
+  -> Extrayendo de T19HGE - 20201101
+  -> Extrayendo de T19HGE - 20200726
+  -> Extrayendo de T19HGE - 20200410
+  -> Extrayendo de T19HGE - 20200902
+  -> Extrayendo de T19HGE - 20200520
+  -> Extrayendo de T19HGE - 20200803
+  -> Extrayendo de T19HGE - 20201203
+  -> Extrayendo de T19HGE - 20201201
+  -> Extrayendo de T19HGE - 20200729
+  -> Extrayendo de T19HGE - 20200606
+  -> Extrayendo de T19HGE - 20200331
+  -> Extrayendo de T19HGE - 20200922
+  -> Extrayendo de T19HGE - 20200212
+  -> Extrayendo de T19HGE - 20200621
+  -> Extrayendo de T19HGE - 20200629
+  -> Extrayendo de T19HGE - 20200927
+  -> Extrayendo de T19HGE - 20200407
+  -> Extrayendo de T19HGE - 20200425
+  -> Extrayendo de T19HGE - 20200907
+  -> Extrayendo de T19HGE - 20201128
+  -> Extrayendo de T19HGE - 20200828
+  -> Extrayendo de T19HGE - 20200313
+  -> Extrayendo de T19HGE - 20201121
+  -> Extrayendo de T19HGE - 20200116
+  -> Extrayendo de T19HGE - 20201226
+  -> Extrayendo de T19HGE - 20200704
+  -> Extrayendo de T19HGE - 20200510
+  -> Extrayendo de T19HGE - 20200126
+  -> Extrayendo de T19HGE - 20200306
+  -> Extrayendo de T19HGE - 20201211
+  -> Extrayendo de T19HGE - 20200402
+  -> Extrayendo de T19HGE - 20200227
+  -> Extrayendo de T19HGE - 20200716
+  -> Extrayendo de T19HGE - 20201017
+  -> Extrayendo de T19HGE - 20200823
+  -> Extrayendo de T19HGE - 20200111
+  -> Extrayendo de T19HGE - 20200624
+  -> Extrayendo de T19HGE - 20200830
+  -> Extrayendo de T19HGE - 20200205
+  -> Extrayendo de T19HGE - 20200106
+  -> Extrayendo de T19HGE - 20201113
+  -> Extrayendo de T19HGB - 20200701
+  -> Extrayendo de T19HGB - 20200512
+  -> Extrayendo de T19HGB - 20200618
+  -> Extrayendo de T19HGB - 20200125
+  -> Extrayendo de T19HGB - 20200204
+  -> Extrayendo de T19HGB - 20201220
+  -> Extrayendo de T19HGB - 20200810
+  -> Extrayendo de T19HGB - 20200711
+  -> Extrayendo de T19HGB - 20200603
+  -> Extrayendo de T19HGB - 20200906
+  -> Extrayendo de T19HGB - 20200305
+  -> Extrayendo de T19HGB - 20200805
+  -> Extrayendo de T19HGB - 20201108
+  -> Extrayendo de T19HGB - 20200118
+  -> Extrayendo de T19HGB - 20201210
+  -> Extrayendo de T19HGB - 20200527
+  -> Extrayendo de T19HGB - 20201021
+  -> Extrayendo de T19HGB - 20200404
+  -> Extrayendo de T19HGB - 20200209
+  -> Extrayendo de T19HGB - 20200623
+  -> Extrayendo de T19HGB - 20200924
+  -> Extrayendo de T19HGB - 20200207
+  -> Extrayendo de T19HGB - 20200507
+  -> Extrayendo de T19HGB - 20200217
+  -> Extrayendo de T19HGB - 20201024
+  -> Extrayendo de T19HGB - 20200417
+  -> Extrayendo de T19HGB - 20200419
+  -> Extrayendo de T19HGB - 20200914
+  -> Extrayendo de T19HGB - 20200412
+  -> Extrayendo de T19HGB - 20200325
+  -> Extrayendo de T19HGB - 20200514
+  -> Extrayendo de T19HGB - 20201208
+  -> Extrayendo de T19HGB - 20200308
+  -> Extrayendo de T19HGB - 20200509
+  -> Extrayendo de T19HGB - 20200323
+  -> Extrayendo de T19HGB - 20201014
+  -> Extrayendo de T19HGB - 20200123
+  -> Extrayendo de T19HGB - 20201125
+  -> Extrayendo de T19HGB - 20201029
+  -> Extrayendo de T19HGB - 20200919
+  -> Extrayendo de T19HGB - 20200909
+  -> Extrayendo de T19HGB - 20201223
+  -> Extrayendo de T19HGB - 20200224
+  -> Extrayendo de T19HGB - 20200108
+  -> Extrayendo de T19HGB - 20201118
+  -> Extrayendo de T19HGB - 20200422
+  -> Extrayendo de T19HGB - 20200611
+  -> Extrayendo de T19HGB - 20200315
+  -> Extrayendo de T19HGB - 20200120
+  -> Extrayendo de T19HGB - 20200502
+  -> Extrayendo de T19HGB - 20200517
+  -> Extrayendo de T19HGB - 20200524
+  -> Extrayendo de T19HGB - 20200222
+  -> Extrayendo de T19HGB - 20200522
+  -> Extrayendo de T19HGB - 20201103
+  -> Extrayendo de T19HGB - 20200613
+  -> Extrayendo de T19HGB - 20201123
+  -> Extrayendo de T19HGB - 20200904
+  -> Extrayendo de T19HGB - 20200820
+  -> Extrayendo de T19HGB - 20201230
+  -> Extrayendo de T19HGB - 20200723
+  -> Extrayendo de T19HGB - 20200608
+  -> Extrayendo de T19HGB - 20201004
+  -> Extrayendo de T19HGB - 20200130
+  -> Extrayendo de T19HGB - 20200519
+  -> Extrayendo de T19HGB - 20200103
+  -> Extrayendo de T19HGB - 20200616
+  -> Extrayendo de T19HGB - 20201011
+  -> Extrayendo de T19HGB - 20200901
+  -> Extrayendo de T19HGB - 20200703
+  -> Extrayendo de T19HGB - 20201130
+  -> Extrayendo de T19HGB - 20200424
+  -> Extrayendo de T19HGB - 20200929
+  -> Extrayendo de T19HGB - 20200706
+  -> Extrayendo de T19HGB - 20200728
+  -> Extrayendo de T19HGB - 20200414
+  -> Extrayendo de T19HGB - 20200713
+  -> Extrayendo de T19HGB - 20201228
+  -> Extrayendo de T19HGB - 20200303
+  -> Extrayendo de T19HGB - 20200718
+  -> Extrayendo de T19HGB - 20200626
+  -> Extrayendo de T19HGB - 20201225
+  -> Extrayendo de T19HGB - 20200731
+  -> Extrayendo de T19HGB - 20200825
+  -> Extrayendo de T19HGB - 20200921
+  -> Extrayendo de T19HGB - 20200815
+  -> Extrayendo de T19HGB - 20200219
+⚠️ Archivo corrupto detectado en T19HGB - 20201218. Saltando... (Detalle: Read failed. See previous exception for details.)
+  -> Extrayendo de T19HGB - 20201019
+  -> Extrayendo de T19HGB - 20200330
+  -> Extrayendo de T19HGB - 20200409
+  -> Extrayendo de T19HGB - 20201105
+  -> Extrayendo de T19HGB - 20200601
+  -> Extrayendo de T19HGB - 20200529
+  -> Extrayendo de T19HGB - 20201006
+  -> Extrayendo de T19HGB - 20200105
+  -> Extrayendo de T19HGB - 20200926
+  -> Extrayendo de T19HGB - 20200427
+  -> Extrayendo de T19HGB - 20200807
+  -> Extrayendo de T19HGB - 20200128
+  -> Extrayendo de T19HGB - 20200214
+  -> Extrayendo de T19HGB - 20201110
+  -> Extrayendo de T19HGB - 20201009
+  -> Extrayendo de T19HGB - 20200202
+  -> Extrayendo de T19HGB - 20201213
+  -> Extrayendo de T19HGB - 20200229
+  -> Extrayendo de T19HGB - 20200113
+⚠️ Archivo corrupto detectado en T19HGB - 20200916. Saltando... (Detalle: Read failed. See previous exception for details.)
+⚠️ Archivo corrupto detectado en T19HGB - 20200318. Saltando... (Detalle: Read failed. See previous exception for details.)
+  -> Extrayendo de T19HGB - 20200328
+  -> Extrayendo de T19HGB - 20200726
+  -> Extrayendo de T19HGB - 20200817
+  -> Extrayendo de T19HGB - 20201203
+  -> Extrayendo de T19HGB - 20200115
+  -> Extrayendo de T19HGB - 20201031
+  -> Extrayendo de T19HGB - 20200606
+  -> Extrayendo de T19HGB - 20201026
+  -> Extrayendo de T19HGB - 20200212
+  -> Extrayendo de T19HGB - 20200708
+  -> Extrayendo de T19HGB - 20200621
+  -> Extrayendo de T19HGB - 20201205
+  -> Extrayendo de T19HGB - 20200407
+  -> Extrayendo de T19HGB - 20200110
+  -> Extrayendo de T19HGB - 20200802
+  -> Extrayendo de T19HGB - 20201128
+  -> Extrayendo de T19HGB - 20200313
+  -> Extrayendo de T19HGB - 20201016
+  -> Extrayendo de T19HGB - 20201001
+  -> Extrayendo de T19HGB - 20200812
+  -> Extrayendo de T19HGB - 20200320
+  -> Extrayendo de T19HGB - 20200504
+  -> Extrayendo de T19HGB - 20200429
+  -> Extrayendo de T19HGB - 20200628
+  -> Extrayendo de T19HGB - 20201215
+  -> Extrayendo de T19HGB - 20200402
+  -> Extrayendo de T19HGB - 20201120
+  -> Extrayendo de T19HGB - 20200227
+  -> Extrayendo de T19HGB - 20200310
+  -> Extrayendo de T19HGB - 20200716
+  -> Extrayendo de T19HGB - 20200822
+  -> Extrayendo de T19HGB - 20200827
+  -> Extrayendo de T19HGB - 20200911
+  -> Extrayendo de T19HGB - 20200830
+  -> Extrayendo de T19HGB - 20201115
+  -> Extrayendo de T19HGB - 20201113
+  -> Extrayendo de T20HMJ - 20200305
+  -> Extrayendo de T20HMJ - 20200224
+  -> Extrayendo de T20HMJ - 20200728
+  -> Extrayendo de T20HMJ - 20200219
+  -> Extrayendo de T20HMJ - 20200229
+  -> Extrayendo de T20HMJ - 20200817
+  -> Extrayendo de T20HMJ - 20200802
+  -> Extrayendo de T20HMJ - 20200812
+  -> Extrayendo de T20HMJ - 20200320
+  -> Extrayendo de T20HMJ - 20200822
+  -> Extrayendo de T20HMJ - 20200827
+  -> Extrayendo de T20HLK - 20200810
+  -> Extrayendo de T20HLK - 20200305
+  -> Extrayendo de T20HLK - 20200805
+  -> Extrayendo de T20HLK - 20200308
+  -> Extrayendo de T20HLK - 20200323
+  -> Extrayendo de T20HLK - 20200909
+  -> Extrayendo de T20HLK - 20200224
+  -> Extrayendo de T20HLK - 20200728
+  -> Extrayendo de T20HLK - 20200303
+  -> Extrayendo de T20HLK - 20200718
+  -> Extrayendo de T20HLK - 20200731
+  -> Extrayendo de T20HLK - 20200825
+  -> Extrayendo de T20HLK - 20200815
+  -> Extrayendo de T20HLK - 20200219
+  -> Extrayendo de T20HLK - 20200330
+  -> Extrayendo de T20HLK - 20200229
+  -> Extrayendo de T20HLK - 20200318
+  -> Extrayendo de T20HLK - 20200726
+  -> Extrayendo de T20HLK - 20200817
+  -> Extrayendo de T20HLK - 20200802
+  -> Extrayendo de T20HLK - 20200313
+  -> Extrayendo de T20HLK - 20200812
+  -> Extrayendo de T20HLK - 20200320
+  -> Extrayendo de T20HLK - 20200402
+  -> Extrayendo de T20HLK - 20200227
+  -> Extrayendo de T20HLK - 20200716
+  -> Extrayendo de T20HLK - 20200827
+  -> Extrayendo de T20HNH - 20200305
+  -> Extrayendo de T20HNH - 20200322
+  -> Extrayendo de T20HNH - 20200226
+  -> Extrayendo de T20HNH - 20200730
+  -> Extrayendo de T20HNH - 20200224
+  -> Extrayendo de T20HNH - 20200221
+  -> Extrayendo de T20HNH - 20200728
+  -> Extrayendo de T20HNH - 20200219
+  -> Extrayendo de T20HNH - 20200229
+  -> Extrayendo de T20HNH - 20200817
+  -> Extrayendo de T20HNH - 20200802
+  -> Extrayendo de T20HNH - 20200302
+  -> Extrayendo de T20HNH - 20200812
+  -> Extrayendo de T20HNH - 20200320
+  -> Extrayendo de T20HNH - 20200822
+  -> Extrayendo de T20HNH - 20200827
+  -> Extrayendo de T20HLG - 20200810
+  -> Extrayendo de T20HLG - 20200305
+  -> Extrayendo de T20HLG - 20200805
+  -> Extrayendo de T20HLG - 20200308
+  -> Extrayendo de T20HLG - 20200323
+  -> Extrayendo de T20HLG - 20200224
+  -> Extrayendo de T20HLG - 20200820
+  -> Extrayendo de T20HLG - 20200728
+  -> Extrayendo de T20HLG - 20200303
+  -> Extrayendo de T20HLG - 20200731
+  -> Extrayendo de T20HLG - 20200825
+  -> Extrayendo de T20HLG - 20200815
+  -> Extrayendo de T20HLG - 20200219
+  -> Extrayendo de T20HLG - 20200229
+  -> Extrayendo de T20HLG - 20200328
+  -> Extrayendo de T20HLG - 20200817
+  -> Extrayendo de T20HLG - 20200802
+  -> Extrayendo de T20HLG - 20200313
+  -> Extrayendo de T20HLG - 20200812
+  -> Extrayendo de T20HLG - 20200320
+  -> Extrayendo de T20HLG - 20200402
+  -> Extrayendo de T20HLG - 20200227
+  -> Extrayendo de T20HLG - 20200716
+  -> Extrayendo de T20HLG - 20200822
+  -> Extrayendo de T20HLG - 20200827
+  -> Extrayendo de T20HLG - 20200830
+  -> Extrayendo de T20JLL - 20200810
+  -> Extrayendo de T20JLL - 20200305
+  -> Extrayendo de T20JLL - 20200805
+  -> Extrayendo de T20JLL - 20200323
+  -> Extrayendo de T20JLL - 20200909
