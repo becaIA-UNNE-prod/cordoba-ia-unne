@@ -1,67 +1,58 @@
 import os
-from pathlib import Path
 import rasterio
 from rasterio.warp import reproject, Resampling
 
-# --- MODO DEBUG ---
-DEBUG_MODE = False
-# ------------------
+def generar_mascara_10m(ruta_etiqueta_30m, ruta_referencia_s2, ruta_salida):
+    print(f"Usando referencia: {ruta_referencia_s2}")
+    print(f"Generando máscara en: {ruta_salida}")
 
-BASE_DIR = Path("/mnt/yacy_1/prod/ferreyra/sentinel2_cordoba/")
-RUTA_MASCARA_GRANDE = Path("cobertura_y_uso_2021.tif")
-MASK_TILES_DIR = Path("/mnt/yacy_1/prod/ferreyra/mascaras_por_tile/")
+    with rasterio.open(ruta_referencia_s2) as ref:
+        crs_s2 = ref.crs
+        transform_s2 = ref.transform
+        width_s2 = ref.width
+        height_s2 = ref.height
 
-MASK_TILES_DIR.mkdir(parents=True, exist_ok=True)
+    with rasterio.open(ruta_etiqueta_30m) as src:
+        kwargs = src.meta.copy()
+        kwargs.update({
+            'crs': crs_s2,
+            'transform': transform_s2,
+            'width': width_s2,
+            'height': height_s2
+        })
 
-todos_los_tiles = [d.name for d in BASE_DIR.iterdir() if d.is_dir()]
+        with rasterio.open(ruta_salida, 'w', **kwargs) as dst:
+            reproject(
+                source=rasterio.band(src, 1),
+                destination=rasterio.band(dst, 1),
+                src_transform=src.transform,
+                src_crs=src.crs,
+                dst_transform=transform_s2,
+                dst_crs=crs_s2,
+                resampling=Resampling.nearest
+            )
+    print("Máscara generada con éxito.")
 
-# Lógica Debug: Limitar a 1 solo Tile
-if DEBUG_MODE:
-    print(f"⚠️ MODO DEBUG ACTIVO: Solo se procesará 1 Tile de los {len(todos_los_tiles)} disponibles.")
-    todos_los_tiles = todos_los_tiles[:1]
+if __name__ == "__main__":
+    # Rutas ajustadas para ejecutar desde ~/cordoba_ia_unne/
+    TIF_ORIGINAL = "./Nivel3_28_dic_2018_30m_completo.tif"
+    DIR_SALIDA = "./mascaras_procesadas"
+    os.makedirs(DIR_SALIDA, exist_ok=True)
 
-print(f"Abriendo máscara original gigante...")
-with rasterio.open(RUTA_MASCARA_GRANDE) as src_big_mask:
-    
-    for tile in todos_los_tiles:
-        tile_path = BASE_DIR / tile
-        fechas = [d for d in tile_path.iterdir() if d.is_dir()]
-        if not fechas: 
-            continue
-        
-        ref_band_path = None
-        for f_dir in fechas:
-            found = list(f_dir.glob(f"{tile}_*_B02.jp2"))
-            if found:
-                ref_band_path = found[0]
-                break
-        
-        if not ref_band_path:
-            print(f"No se encontró banda B02 para el Tile {tile}. Saltando...")
-            continue
-            
-        with rasterio.open(ref_band_path) as src_ref:
-            kwargs = src_ref.meta.copy()
-            
-            kwargs.update({
-                'driver': 'GTiff',
-                'count': 1,
-                'dtype': src_big_mask.dtypes[0], 
-                'nodata': src_big_mask.nodata if src_big_mask.nodata is not None else 0
-            })
-            
-            output_tile_mask = MASK_TILES_DIR / f"mascara_{tile}.tif"
-            print(f"-> Creando máscara geométrica para: {tile}...")
-            
-            with rasterio.open(output_tile_mask, 'w', **kwargs) as dst:
-                reproject(
-                    source=rasterio.band(src_big_mask, 1),
-                    destination=rasterio.band(dst, 1),
-                    src_transform=src_big_mask.transform,
-                    src_crs=src_big_mask.crs,
-                    dst_transform=src_ref.transform,
-                    dst_crs=src_ref.crs,
-                    resampling=Resampling.nearest 
-                )
+    tile_prueba = "T20JLL"
+    fecha_prueba = "20190108"
+    banda_referencia = f"{tile_prueba}_{fecha_prueba}_B04.jp2"
 
-print("\n¡PASO 1 FINALIZADO!")
+    ruta_referencia = os.path.join(
+        "/mnt/yacy_1/prod/ferreyra/sentinel2_cordoba",
+        tile_prueba,
+        fecha_prueba,
+        banda_referencia
+    )
+
+    ruta_salida_mascara = os.path.join(DIR_SALIDA, f"etiqueta_{tile_prueba}_10m_test.tif")
+
+    if not os.path.exists(ruta_referencia):
+        raise FileNotFoundError(f"No se encontró: {ruta_referencia}")
+
+    generar_mascara_10m(TIF_ORIGINAL, ruta_referencia, ruta_salida_mascara)
