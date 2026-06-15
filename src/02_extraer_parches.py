@@ -1,129 +1,69 @@
 import os
-from pathlib import Path
 import numpy as np
-from sklearn.model_selection import train_test_split
 import rasterio
 from rasterio.windows import Window
 
-# --- MODO DEBUG ---
-DEBUG_MODE = False
-MAX_PATCHES_DEBUG = 10  # Cuántos parches extraer por imagen en modo debug
-# ------------------
+def extraer_parches_multitemporales(tile_id, ruta_base_s2, ruta_etiqueta, dir_salida, size=256):
+    os.makedirs(dir_salida, exist_ok=True)
 
-BASE_DIR = Path("/mnt/yacy_1/prod/ferreyra/sentinel2_cordoba/")
-MASK_TILES_DIR = Path("/mnt/yacy_1/prod/ferreyra/mascaras_por_tile/")
-OUTPUT_DIR = Path("/mnt/yacy_1/prod/ferreyra/unet_dataset/")
-PATCH_SIZE = 256
+    ruta_tile = os.path.join(ruta_base_s2, tile_id)
+    fechas = sorted([d for d in os.listdir(ruta_tile) if os.path.isdir(os.path.join(ruta_tile, d))])
 
-todos_los_tiles = [d.name for d in BASE_DIR.iterdir() if d.is_dir()]
+    # Límite estricto de 3 fechas para prueba de concepto
+    fechas = fechas[:3]
+    bandas = ["B02", "B03", "B04", "B08"]
 
-train_tiles, temp_tiles = train_test_split(todos_los_tiles, test_size=0.30, random_state=42)
-val_tiles, test_tiles = train_test_split(temp_tiles, test_size=0.50, random_state=42)
+    print(f"Procesando Tile {tile_id} | Fechas a usar: {fechas}")
+    print("Iniciando extracción por ventanas...")
 
-# Lógica Debug: Limitar a 1 Tile por partición
-if DEBUG_MODE:
-    print(f"⚠️ MODO DEBUG ACTIVO: Forzando el uso del Tile T20JKP.")
-    train_tiles = ["T20JKP"]
-    val_tiles = []
-    test_tiles = []
+    with rasterio.open(ruta_etiqueta) as src_label:
+        alto, ancho = src_label.height, src_label.width
+        contador_parches = 0
 
-splits = {'train': train_tiles, 'val': val_tiles, 'test': test_tiles}
+        for y in range(0, alto - size, size):
+            for x in range(0, ancho - size, size):
+                ventana = Window(x, y, size, size)
+                parche_y = src_label.read(1, window=ventana)
 
-for split_name in splits.keys():
-    (OUTPUT_DIR / split_name / "images").mkdir(parents=True, exist_ok=True)
-    (OUTPUT_DIR / split_name / "masks").mkdir(parents=True, exist_ok=True)
+                # Ignorar parches sin datos (0)
+                if np.all(parche_y == 0):
+                    continue
 
-for split_name, tiles in splits.items():
-    print(f"\nProcesando conjunto: {split_name.upper()}")
-    for tile in tiles:
-        tile_path = BASE_DIR / tile
-        tile_mask_path = MASK_TILES_DIR / f"mascara_{tile}.tif"
+                parche_x_temporal = []
+                for fecha in fechas:
+                    for banda in bandas:
+                        nombre_archivo = f"{tile_id}_{fecha}_{banda}.jp2"
+                        ruta_banda = os.path.join(ruta_tile, fecha, nombre_archivo)
 
-        if not tile_mask_path.exists():
-            print(f"Máscara para {tile} no existe, saltando...")
-            continue
+                        if os.path.exists(ruta_banda):
+                            with rasterio.open(ruta_banda) as src_banda:
+                                parche_banda = src_banda.read(1, window=ventana)
+                                parche_x_temporal.append(parche_banda)
+                        else:
+                            parche_x_temporal.append(np.zeros((size, size), dtype=np.uint16))
 
-        for date_dir in tile_path.iterdir():
-            if not date_dir.is_dir(): continue
-            fecha = date_dir.name
+                # Tensor X forma: (Fechas*Bandas, H, W)
+                parche_x = np.stack(parche_x_temporal, axis=0)
 
-            if not (fecha.startswith("2020") or fecha.startswith("2021")):
-                continue
+                ruta_guardado_x = os.path.join(dir_salida, f"X_{tile_id}_{contador_parches}.npy")
+                ruta_guardado_y = os.path.join(dir_salida, f"Y_{tile_id}_{contador_parches}.npy")
 
-            b2_p = date_dir / f"{tile}_{fecha}_B02.jp2"
-            b3_p = date_dir / f"{tile}_{fecha}_B03.jp2"
-            b4_p = date_dir / f"{tile}_{fecha}_B04.jp2"
-            b8_p = date_dir / f"{tile}_{fecha}_B08.jp2"
+                np.save(ruta_guardado_x, parche_x.astype(np.float32))
+                np.save(ruta_guardado_y, parche_y.astype(np.int64))
 
-            if not all(p.exists() for p in [b2_p, b3_p, b4_p, b8_p]):
-                continue
+                contador_parches += 1
+                if contador_parches % 20 == 0:
+                    print(f"Extraídos {contador_parches} parches útiles...")
 
-            try:
-                with rasterio.open(b2_p) as src_b2, rasterio.open(b3_p) as src_b3, \
-                     rasterio.open(b4_p) as src_b4, rasterio.open(b8_p) as src_b8, \
-                     rasterio.open(tile_mask_path) as src_m:
-                    
-                    height, width = src_b2.shape
-                    
-                    for y in range(0, height - PATCH_SIZE + 1, PATCH_SIZE):
-                        for x in range(0, width - PATCH_SIZE + 1, PATCH_SIZE):
-                            window = Window(x, y, PATCH_SIZE, PATCH_SIZE)
-                            
-                            b2 = src_b2.read(1, window=window)
-                            b3 = src_b3.read(1, window=window)
-                            b4 = src_b4.read(1, window=window)
-                            b8 = src_b8.read(1, window=window)
-                            mask_patch = src_m.read(1, window=window)
-                            
-                            img_patch = np.dstack((b2, b3, b4, b8))
-                            
-                            if np.max(img_patch) == 0:
-                                continue
-                                
-                            filename = f"{tile}_{fecha}_y{y}_x{x}.npy"
-                            np.save(OUTPUT_DIR / split_name / "images" / filename, img_patch)
-                            np.save(OUTPUT_DIR / split_name / "masks" / filename, mask_patch)
-                            
-            except Exception as e:
-                print(f"⚠️ Archivo corrupto detectado en {tile} - {fecha}. Saltando... (Detalle: {e})")
-                continue # Pasa a la siguiente iteración de fecha automáticamente
+    print(f"Extracción finalizada. Total de parches generados: {contador_parches}")
 
-            print(f"  -> Extrayendo de {tile} - {fecha}")
-            patches_extraidos = 0
+if __name__ == "__main__":
+    TILE_PRUEBA = "T20JLL"
+    BASE_S2 = "/mnt/yacy_1/prod/ferreyra/sentinel2_cordoba"
+    RUTA_MASCARA = "./mascaras_procesadas/etiqueta_T20JLL_10m_test.tif"
+    DIR_DATASET = "./dataset/train"
 
-            with rasterio.open(b2_p) as src_b2, rasterio.open(b3_p) as src_b3, \
-                 rasterio.open(b4_p) as src_b4, rasterio.open(b8_p) as src_b8, \
-                 rasterio.open(tile_mask_path) as src_m:
+    if not os.path.exists(RUTA_MASCARA):
+        raise FileNotFoundError(f"No se encontró: {RUTA_MASCARA}")
 
-                height, width = src_b2.shape
-
-                for y in range(0, height - PATCH_SIZE + 1, PATCH_SIZE):
-                    if DEBUG_MODE and patches_extraidos >= MAX_PATCHES_DEBUG: break
-
-                    for x in range(0, width - PATCH_SIZE + 1, PATCH_SIZE):
-                        if DEBUG_MODE and patches_extraidos >= MAX_PATCHES_DEBUG: break
-
-                        window = Window(x, y, PATCH_SIZE, PATCH_SIZE)
-
-                        b2 = src_b2.read(1, window=window)
-                        b3 = src_b3.read(1, window=window)
-                        b4 = src_b4.read(1, window=window)
-                        b8 = src_b8.read(1, window=window)
-                        mask_patch = src_m.read(1, window=window)
-
-                        img_patch = np.dstack((b2, b3, b4, b8))
-
-                        if np.max(img_patch) == 0:
-                            continue
-
-                        filename = f"{tile}_{fecha}_y{y}_x{x}.npy"
-                        np.save(OUTPUT_DIR / split_name / "images" / filename, img_patch)
-                        np.save(OUTPUT_DIR / split_name / "masks" / filename, mask_patch)
-
-                        patches_extraidos += 1
-
-            if DEBUG_MODE:
-                print(f"     Extraídos {patches_extraidos} parches en modo debug.")
-                break # Rompe el loop de fechas para saltar rápido al siguiente split
-
-print("\n¡PASO 2 COMPLETADO EN MODO DEBUG!")
+    extraer_parches_multitemporales(TILE_PRUEBA, BASE_S2, RUTA_MASCARA, DIR_DATASET)

@@ -1,126 +1,126 @@
 import os
-import sys
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from pathlib import Path
-from tqdm import tqdm
+from torch.utils.data import DataLoader, random_split
+import numpy as np
 
-# Aseguramos que Python encuentre la carpeta 'utils' independientemente de dónde ejecutemos el script
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+import sys
+sys.path.append(os.path.abspath("."))
 
-from utils.dataset import get_dataloaders
-from utils.model import UNet
+from utils.dataset import CordobaDataset
+from utils.model import SimpleUNet
 
-# --- CONFIGURACIÓN E HIPERPARÁMETROS ---
-DATASET_DIR = "/mnt/yacy_1/prod/ferreyra/unet_dataset/"
-MODEL_OUTPUT_DIR = Path("/mnt/yacy_1/prod/ferreyra/modelos_guardados/")
-MODEL_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+def calcular_accuracy(predicciones, etiquetas, ignore_index=0):
+    """Calcula el porcentaje de píxeles correctos ignorando el fondo (NoData)"""
+    pred_clases = torch.argmax(predicciones, dim=1)
+    mascara_validos = etiquetas != ignore_index
 
-BATCH_SIZE = 16
-LEARNING_RATE = 1e-4
-NUM_EPOCHS = 50
+    correctos = (pred_clases[mascara_validos] == etiquetas[mascara_validos]).sum().item()
+    total_validos = mascara_validos.sum().item()
 
-# Detección de GPU
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print(f"🔥 Dispositivo de entrenamiento: {DEVICE}")
+    if total_validos == 0:
+        return 0.0
+    return correctos / total_validos
 
-def calculate_iou(preds, labels):
-    """Calcula el Intersection over Union (IoU) para la clasificación binaria."""
-    preds = torch.sigmoid(preds) > 0.5  # Convertir logits a 0 o 1
-    preds = preds.int()
-    labels = labels.int()
-    
-    intersection = (preds & labels).float().sum((1, 2))
-    union = (preds | labels).float().sum((1, 2))
-    
-    # Evitar división por cero
-    iou = (intersection + 1e-6) / (union + 1e-6)
-    return iou.mean().item()
-
-def train_one_epoch(model, loader, optimizer, criterion):
-    model.train()
+def evaluar(modelo, dataloader, criterion, device):
+    """Función genérica para evaluar en Validación o Test"""
+    modelo.eval()
     running_loss = 0.0
-    running_iou = 0.0
-    
-    # tqdm genera una barra de progreso interactiva en la terminal
-    pbar = tqdm(loader, desc="Entrenando", leave=False)
-    for images, masks in pbar:
-        images = images.to(DEVICE)
-        # PyTorch espera que las máscaras binarias para BCEWithLogitsLoss sean flotantes
-        masks = masks.to(DEVICE).float().unsqueeze(1) 
-        
-        # 1. Forward pass
-        predictions = model(images)
-        loss = criterion(predictions, masks)
-        
-        # 2. Backward pass y optimización
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-        
-        # 3. Métricas
-        running_loss += loss.item()
-        running_iou += calculate_iou(predictions, masks)
-        
-        pbar.set_postfix(loss=loss.item())
-        
-    return running_loss / len(loader), running_iou / len(loader)
+    running_acc = 0.0
 
-@torch.no_grad()
-def validate(model, loader, criterion):
-    model.eval()
-    running_loss = 0.0
-    running_iou = 0.0
-    
-    pbar = tqdm(loader, desc="Validando", leave=False)
-    for images, masks in pbar:
-        images = images.to(DEVICE)
-        masks = masks.to(DEVICE).float().unsqueeze(1)
-        
-        predictions = model(images)
-        loss = criterion(predictions, masks)
-        
-        running_loss += loss.item()
-        running_iou += calculate_iou(predictions, masks)
-        
-    return running_loss / len(loader), running_iou / len(loader)
+    with torch.no_grad():
+        for datos_x, etiquetas_y in dataloader:
+            datos_x = datos_x.to(device)
+            etiquetas_y = etiquetas_y.to(device)
 
-def main():
-    # 1. Preparar Dataloaders
-    print("Cargando datos...")
-    train_loader, val_loader, _ = get_dataloaders(DATASET_DIR, batch_size=BATCH_SIZE)
-    print(f"Lotes por epoch: Train={len(train_loader)} | Val={len(val_loader)}")
-    
-    # 2. Inicializar Modelo, Loss y Optimizador
-    model = UNet(in_channels=4, out_channels=1).to(DEVICE)
-    criterion = nn.BCEWithLogitsLoss()
+            salidas = modelo(datos_x)
+            loss = criterion(salidas, etiquetas_y)
+            acc = calcular_accuracy(salidas, etiquetas_y)
+
+            running_loss += loss.item()
+            running_acc += acc
+
+    loss_promedio = running_loss / len(dataloader)
+    acc_promedio = running_acc / len(dataloader)
+    return loss_promedio, acc_promedio
+
+def entrenar():
+    DIR_DATASET = "./dataset/train"
+    BATCH_SIZE = 4
+    EPOCHS = 5
+    LEARNING_RATE = 1e-4
+    IN_CHANNELS = 12
+    NUM_CLASSES = 50
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Dispositivo: {device}")
+
+    # 1. Cargar dataset completo
+    dataset_completo = CordobaDataset(DIR_DATASET)
+    total_size = len(dataset_completo)
+
+    if total_size == 0:
+        print("Error: No hay datos.")
+        return
+
+    # 2. Dividir en Train (70%), Val (15%), Test (15%)
+    train_size = int(0.7 * total_size)
+    val_size = int(0.15 * total_size)
+    test_size = total_size - train_size - val_size
+
+    train_dataset, val_dataset, test_dataset = random_split(
+        dataset_completo, [train_size, val_size, test_size]
+    )
+
+    print(f"Splits -> Train: {train_size} | Val: {val_size} | Test: {test_size}")
+
+    train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
+    val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
+    test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False)
+
+    model = SimpleUNet(IN_CHANNELS, NUM_CLASSES).to(device)
+    criterion = nn.CrossEntropyLoss(ignore_index=0)
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
-    
-    best_val_loss = float('inf')
-    
+
     # 3. Bucle de Entrenamiento
-    print("\n🚀 Iniciando entrenamiento...")
-    for epoch in range(NUM_EPOCHS):
-        print(f"\n--- Epoch {epoch+1}/{NUM_EPOCHS} ---")
-        
-        train_loss, train_iou = train_one_epoch(model, train_loader, optimizer, criterion)
-        val_loss, val_iou = validate(model, val_loader, criterion)
-        
-        print(f"Train -> Loss: {train_loss:.4f} | IoU: {train_iou:.4f}")
-        print(f"Val   -> Loss: {val_loss:.4f} | IoU: {val_iou:.4f}")
-        
-        # 4. Guardar el mejor modelo (Model Checkpointing)
-        if val_loss < best_val_loss:
-            best_val_loss = val_loss
-            save_path = MODEL_OUTPUT_DIR / "unet_sentinel_best.pth"
-            torch.save({
-                'epoch': epoch,
-                'model_state_dict': model.state_dict(),
-                'optimizer_state_dict': optimizer.state_dict(),
-                'val_loss': val_loss,
-            }, save_path)
-            print(f"💾 ¡Nuevo mejor modelo guardado! (Mejora en Loss: {val_loss:.4f})")
+    for epoch in range(EPOCHS):
+        model.train()
+        train_loss = 0.0
+        train_acc = 0.0
+
+        for batch_idx, (datos_x, etiquetas_y) in enumerate(train_loader):
+            datos_x = datos_x.to(device)
+            etiquetas_y = etiquetas_y.to(device)
+
+            optimizer.zero_grad()
+            predicciones = model(datos_x)
+
+            loss = criterion(predicciones, etiquetas_y)
+            loss.backward()
+            optimizer.step()
+
+            train_loss += loss.item()
+            train_acc += calcular_accuracy(predicciones, etiquetas_y)
+
+        train_loss_epoch = train_loss / len(train_loader)
+        train_acc_epoch = train_acc / len(train_loader)
+
+        # 4. Fase de Validación
+        val_loss_epoch, val_acc_epoch = evaluar(model, val_loader, criterion, device)
+
+        print(f"Epoch [{epoch+1}/{EPOCHS}] "
+              f"| Train Loss: {train_loss_epoch:.4f} Acc: {train_acc_epoch:.4f} "
+              f"| Val Loss: {val_loss_epoch:.4f} Acc: {val_acc_epoch:.4f}")
+
+    # 5. Fase de Testeo Final
+    print("\n--- Evaluando en conjunto de TEST ---")
+    test_loss, test_acc = evaluar(model, test_loader, criterion, device)
+    print(f"Test Loss: {test_loss:.4f} | Test Acc: {test_acc:.4f}")
+
+    os.makedirs("./pesos", exist_ok=True)
+    torch.save(model.state_dict(), "./pesos/modelo_cordoba_test.pth")
+    print("Modelo guardado.")
 
 if __name__ == "__main__":
-    main()
+    entrenar()
