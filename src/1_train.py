@@ -50,7 +50,7 @@ def entrenar():
     BATCH_SIZE = 4
     EPOCHS = 5
     LEARNING_RATE = 1e-4
-    IN_CHANNELS = 12
+    # IN_CHANNELS = 12 # ya no es necesario
     NUM_CLASSES = 50
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -63,6 +63,11 @@ def entrenar():
     if total_size == 0:
         print("Error: No hay datos.")
         return
+
+    # Autodetectar IN_CHANNELS leyendo el primer parche
+    muestra_x, _ = dataset_completo[0]
+    IN_CHANNELS = muestra_x.shape[0]
+    print(f"Autodetectados {IN_CHANNELS} canales de entrada (Meses x Bandas).")
 
     # 2. Dividir en Train (70%), Val (15%), Test (15%)
     train_size = int(0.7 * total_size)
