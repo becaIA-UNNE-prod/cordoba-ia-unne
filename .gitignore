@@ -2,6 +2,30 @@
 dataset/
 mascaras_procesadas/
 pesos/
+dat
+*~
+*.o
+*.a
+*.mod
+*.pyc
+*.so
+*.gif
+*.log
+*.png
+*.eps
+*.pan
+*.npz
+*.xz
+*.pdf
+*.out
+*.aux
+rep.org
+old/
+tmp/
+dat
+tt/
+fig/
+exp
 
 # Python-generated files
 __pycache__/
