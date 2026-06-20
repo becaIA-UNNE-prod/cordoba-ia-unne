@@ -34,17 +34,20 @@ def generar_mascara_10m(ruta_etiqueta_30m, ruta_referencia_s2, ruta_salida):
     print("Máscara generada con éxito.")
 
 if __name__ == "__main__":
-    # Rutas ajustadas para ejecutar desde ~/cordoba_ia_unne/
+    # Mantengo el TIF_ORIGINAL asumiendo que sigues usando la misma etiqueta base de 30m
     TIF_ORIGINAL = "./Nivel3_28_dic_2018_30m_completo.tif"
     DIR_SALIDA = "./mascaras_procesadas"
     os.makedirs(DIR_SALIDA, exist_ok=True)
 
-    tile_prueba = "T20JLL"
-    fecha_prueba = "20190108"
+    # Nuevos parámetros de prueba basados en el directorio sentinel2_cordoba_2017_2018
+    tile_prueba = "20JLL"
+    fecha_prueba = "20170719"
+
+    # La construcción del nombre del archivo funciona perfectamente con la nueva nomenclatura
     banda_referencia = f"{tile_prueba}_{fecha_prueba}_B04.jp2"
 
     ruta_referencia = os.path.join(
-        "/mnt/yacy_1/prod/ferreyra/sentinel2_cordoba",
+        "/mnt/yacy_1/prod/ferreyra/sentinel2_cordoba_2017_2018",
         tile_prueba,
         fecha_prueba,
         banda_referencia

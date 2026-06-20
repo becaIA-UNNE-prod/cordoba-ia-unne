@@ -9,12 +9,12 @@ sys.path.append(os.path.abspath("."))
 from utils.model import SimpleUNet
 
 def generar_mapa_clasificacion():
-    # 1. Configuración
-    TILE = "T20JLL"
+    # 1. Configuración actualizada para el nuevo tile
+    TILE = "20JLL"
     DIR_COMPOSITES = "./dataset/composites"
-    RUTA_MASCARA = "./mascaras_procesadas/etiqueta_T20JLL_10m_test.tif"
+    RUTA_MASCARA = f"./mascaras_procesadas/etiqueta_{TILE}_10m_test.tif"
     RUTA_PESOS = "./pesos/modelo_cordoba_test.pth"
-    RUTA_SALIDA = "./prediccion_T20JLL.tif"
+    RUTA_SALIDA = f"./prediccion_{TILE}.tif"
 
     NUM_CLASSES = 50
     SIZE = 512  # Ventana de inferencia
@@ -43,6 +43,7 @@ def generar_mapa_clasificacion():
     with rasterio.open(RUTA_MASCARA) as src_ref:
         meta = src_ref.meta.copy()
         alto, ancho = src_ref.height, src_ref.width
+        # Forzamos la salida a ser de un solo canal, tipo uint8 (suficiente para 50 clases)
         meta.update(dtype=rasterio.uint8, count=1, nodata=0)
 
     print(f"Dimensiones del mapa a predecir: {ancho} x {alto} píxeles.")
@@ -69,6 +70,9 @@ def generar_mapa_clasificacion():
 
                     # Apilar y normalizar
                     parche_x = np.concatenate(parche_x_temporal, axis=0).astype(np.float32)
+
+                    # NOTA: Asegúrate de que esta división coincida exactamente con
+                    # cómo normalizas los datos dentro de tu clase CordobaDataset
                     parche_x = parche_x / 10000.0
 
                     # (Batch, Channels, Height, Width)

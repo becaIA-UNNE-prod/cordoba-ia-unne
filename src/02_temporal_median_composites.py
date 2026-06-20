@@ -74,8 +74,12 @@ def generar_composiciones_mensuales(tile_id, ruta_base_s2, dir_salida, max_worke
             print(resultado)
 
 if __name__ == "__main__":
-    TILE_PRUEBA = "T20JLL"
-    BASE_S2 = "/mnt/yacy_1/prod/ferreyra/sentinel2_cordoba"
+    # Actualizado con la nueva nomenclatura de tile
+    TILE_PRUEBA = "20JLL"
+
+    # Actualizado con la nueva ruta
+    BASE_S2 = "/mnt/yacy_1/prod/ferreyra/sentinel2_cordoba_2017_2018"
+
     DIR_COMPOSITES = "./dataset/composites"
 
     # Si quieres limitar el uso de CPU (ej. a 4 núcleos), cambia max_workers=4

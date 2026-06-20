@@ -8,6 +8,7 @@ import numpy as np
 import sys
 sys.path.append(os.path.abspath("."))
 
+# Asumimos que estos módulos ya están creados en tu proyecto
 from utils.dataset import CordobaDataset
 from utils.model import SimpleUNet
 
@@ -47,11 +48,12 @@ def evaluar(modelo, dataloader, criterion, device):
 
 def entrenar():
     DIR_DATASET = "./dataset/train"
-    BATCH_SIZE = 4
+    BATCH_SIZE = 4 # Vigila el uso de VRAM. Si te quedas sin memoria (OOM), bájalo a 2.
     EPOCHS = 5
     LEARNING_RATE = 1e-4
-    # IN_CHANNELS = 12 # ya no es necesario
-    NUM_CLASSES = 50
+    
+    # Asegúrate de que NUM_CLASSES sea mayor al valor máximo que tienes en tus etiquetas Y
+    NUM_CLASSES = 50 
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Dispositivo: {device}")
@@ -61,7 +63,7 @@ def entrenar():
     total_size = len(dataset_completo)
 
     if total_size == 0:
-        print("Error: No hay datos.")
+        print("Error: No hay datos en el directorio especificado.")
         return
 
     # Autodetectar IN_CHANNELS leyendo el primer parche
@@ -123,9 +125,10 @@ def entrenar():
     test_loss, test_acc = evaluar(model, test_loader, criterion, device)
     print(f"Test Loss: {test_loss:.4f} | Test Acc: {test_acc:.4f}")
 
+    # 6. Guardar pesos
     os.makedirs("./pesos", exist_ok=True)
     torch.save(model.state_dict(), "./pesos/modelo_cordoba_test.pth")
-    print("Modelo guardado.")
+    print("Modelo guardado exitosamente.")
 
 if __name__ == "__main__":
     entrenar()
