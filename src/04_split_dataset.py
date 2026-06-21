@@ -31,7 +31,7 @@ def crear_split(dir_parches, ruta_salida, train=0.7, val=0.15, seed=42):
     print(f"Total: {total} | Train: {len(index['train'])} | Val: {len(index['val'])} | Test: {len(index['test'])}")
 
 if __name__ == "__main__":
-    DIR_PARCHES = "./dataset/train"
-    RUTA_SPLIT  = "./dataset/split_index.json"
+    DIR_PARCHES = "/mnt/yacy_1/prod/ferreyra/dataset/train"
+    RUTA_SPLIT  = "/mnt/yacy_1/prod/ferreyra/dataset/split_index.json"
 
     crear_split(DIR_PARCHES, RUTA_SPLIT)

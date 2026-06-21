@@ -11,7 +11,7 @@ from utils.model import SimpleUNet
 def generar_mapa_clasificacion():
     # 1. Configuración actualizada para el nuevo tile
     TILE = "20JLL"
-    DIR_COMPOSITES = "./dataset/composites"
+    DIR_COMPOSITES = "/mnt/yacy_1/prod/ferreyra/dataset/composites"
     RUTA_MASCARA = f"./mascaras_procesadas/etiqueta_{TILE}_10m_test.tif"
     RUTA_PESOS = "./pesos/modelo_cordoba_test.pth"
     RUTA_SALIDA = f"./prediccion_{TILE}.tif"

@@ -47,7 +47,7 @@ def evaluar(modelo, dataloader, criterion, device):
     return loss_promedio, acc_promedio
 
 def entrenar():
-    SPLIT_INDEX = "./dataset/split_index.json"
+    SPLIT_INDEX = "/mnt/yacy_1/prod/ferreyra/dataset/split_index.json"
     BATCH_SIZE = 4 # Vigila el uso de VRAM. Si te quedas sin memoria (OOM), bájalo a 2.
     EPOCHS = 5
     LEARNING_RATE = 1e-4

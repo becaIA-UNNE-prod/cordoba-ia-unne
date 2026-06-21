@@ -80,7 +80,7 @@ if __name__ == "__main__":
     # Actualizado con la nueva ruta
     BASE_S2 = "/mnt/yacy_1/prod/ferreyra/sentinel2_cordoba_2017_2018"
 
-    DIR_COMPOSITES = "./dataset/composites"
+    DIR_COMPOSITES = "/mnt/yacy_1/prod/ferreyra/dataset/composites"
 
     # Si quieres limitar el uso de CPU (ej. a 4 núcleos), cambia max_workers=4
     generar_composiciones_mensuales(TILE_PRUEBA, BASE_S2, DIR_COMPOSITES, max_workers=None)

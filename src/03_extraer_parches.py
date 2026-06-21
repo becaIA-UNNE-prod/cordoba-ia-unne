@@ -61,7 +61,7 @@ if __name__ == "__main__":
     # Actualizado para coincidir con la salida del primer script
     RUTA_MASCARA = "./mascaras_procesadas/etiqueta_20JLL_10m_test.tif"
 
-    DIR_COMPOSITES = "./dataset/composites"
-    DIR_DATASET = "./dataset/train"
+    DIR_COMPOSITES = "/mnt/yacy_1/prod/ferreyra/dataset/composites"
+    DIR_DATASET = "/mnt/yacy_1/prod/ferreyra/dataset/train"
 
     extraer_parches_desde_composites(TILE_PRUEBA, RUTA_MASCARA, DIR_COMPOSITES, DIR_DATASET)
