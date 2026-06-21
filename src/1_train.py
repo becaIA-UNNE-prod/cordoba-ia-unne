@@ -2,7 +2,7 @@ import os
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader
 import numpy as np
 
 import sys
@@ -47,40 +47,32 @@ def evaluar(modelo, dataloader, criterion, device):
     return loss_promedio, acc_promedio
 
 def entrenar():
-    DIR_DATASET = "./dataset/train"
+    SPLIT_INDEX = "./dataset/split_index.json"
     BATCH_SIZE = 4 # Vigila el uso de VRAM. Si te quedas sin memoria (OOM), bájalo a 2.
     EPOCHS = 5
     LEARNING_RATE = 1e-4
-    
+
     # Asegúrate de que NUM_CLASSES sea mayor al valor máximo que tienes en tus etiquetas Y
-    NUM_CLASSES = 50 
+    NUM_CLASSES = 50
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Dispositivo: {device}")
 
-    # 1. Cargar dataset completo
-    dataset_completo = CordobaDataset(DIR_DATASET)
-    total_size = len(dataset_completo)
+    # 1. Cargar splits desde el índice generado por 04_split_dataset.py
+    train_dataset = CordobaDataset(split_index=SPLIT_INDEX, split="train")
+    val_dataset   = CordobaDataset(split_index=SPLIT_INDEX, split="val")
+    test_dataset  = CordobaDataset(split_index=SPLIT_INDEX, split="test")
 
-    if total_size == 0:
-        print("Error: No hay datos en el directorio especificado.")
+    if len(train_dataset) == 0:
+        print("Error: No hay datos de entrenamiento. Ejecutá primero 04_split_dataset.py")
         return
 
+    print(f"Splits -> Train: {len(train_dataset)} | Val: {len(val_dataset)} | Test: {len(test_dataset)}")
+
     # Autodetectar IN_CHANNELS leyendo el primer parche
-    muestra_x, _ = dataset_completo[0]
+    muestra_x, _ = train_dataset[0]
     IN_CHANNELS = muestra_x.shape[0]
     print(f"Autodetectados {IN_CHANNELS} canales de entrada (Meses x Bandas).")
-
-    # 2. Dividir en Train (70%), Val (15%), Test (15%)
-    train_size = int(0.7 * total_size)
-    val_size = int(0.15 * total_size)
-    test_size = total_size - train_size - val_size
-
-    train_dataset, val_dataset, test_dataset = random_split(
-        dataset_completo, [train_size, val_size, test_size]
-    )
-
-    print(f"Splits -> Train: {train_size} | Val: {val_size} | Test: {test_size}")
 
     train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)

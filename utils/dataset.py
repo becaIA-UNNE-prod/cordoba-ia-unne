@@ -1,13 +1,19 @@
 import os
+import json
 import numpy as np
 import torch
 from torch.utils.data import Dataset
 
 class CordobaDataset(Dataset):
-    def __init__(self, dir_parches):
-        self.dir_parches = dir_parches
-        # Buscar solo los archivos X y ordenarlos para asegurar correspondencia
-        self.archivos_x = sorted([f for f in os.listdir(dir_parches) if f.startswith('X_')])
+    def __init__(self, dir_parches, split_index=None, split=None):
+        if split_index is not None and split is not None:
+            with open(split_index) as f:
+                index = json.load(f)
+            self.dir_parches = index["dir_parches"]
+            self.archivos_x = index[split]
+        else:
+            self.dir_parches = dir_parches
+            self.archivos_x = sorted([f for f in os.listdir(dir_parches) if f.startswith('X_')])
 
     def __len__(self):
         return len(self.archivos_x)
