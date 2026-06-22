@@ -67,7 +67,25 @@ def extraer_parches_desde_composites(tile_id, ruta_mascara, dir_composites, dir_
     
     print(f"Guardados {contador_parches} parches en {ruta_salida}")
     return ruta_salida
+# crear_posiciones.py
+import numpy as np
+import os
 
+def crear_posiciones(dir_salida, size=256, step=192, alto=10980, ancho=10980):
+    """
+    Crea el archivo posiciones_parches.npy manualmente
+    Asume que los parches se extrajeron en orden de escaneo
+    """
+    posiciones = []
+    for y in range(0, alto - size, step):
+        for x in range(0, ancho - size, step):
+            posiciones.append((x, y))
+    
+    np.save(os.path.join(dir_salida, "posiciones_parches.npy"), np.array(posiciones))
+    print(f"Posiciones guardadas en {dir_salida}/posiciones_parches.npy")
+    print(f"Total: {len(posiciones)} posiciones")
+
+    
 def cargar_dataset(ruta_npz):
     data = np.load(ruta_npz, allow_pickle=True)
     X = data['X']
@@ -77,11 +95,13 @@ def cargar_dataset(ruta_npz):
     return X, Y, meses, tile_id
 
 if __name__ == "__main__":
+    
     TILE_PRUEBA = "20JLL"
     RUTA_MASCARA = "../dat/etiquetas/etiqueta_20JLL_10m_test.tif"
     DIR_COMPOSITES = "../dat/composites"
     DIR_DATASET = "../dat/train" #salida
-    
+    crear_posiciones(DIR_DATASET, size=256, step=256)
+    quit()
     archivo_salida = extraer_parches_desde_composites(
         TILE_PRUEBA, 
         RUTA_MASCARA, 

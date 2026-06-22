@@ -4,223 +4,289 @@ import torch
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap, BoundaryNorm
 from torch.utils.data import DataLoader
+import sys
+sys.path.append(os.path.abspath("../"))
+from cnf import Cnf # configuracion
+from utils.model import SimpleUNet
+from utils.dataset import CordobaDataset
 
 def visualizar_comparacion(target, prediccion, dir_exp, ignore_class=0):
-    """Visualiza target, predicción y diferencias en 3 paneles"""
-    mascara_valida = target != ignore_class
+    """
+    Visualiza target, predicción y diferencias en 3 paneles usando un enfoque lógico
+    de Acierto (True) vs. Error (False) para las zonas agrícolas de test.
+    """
+    # Asegurar arrays de NumPy
+    if hasattr(target, 'cpu'): target = target.cpu().numpy()
+    if hasattr(prediccion, 'cpu'): prediccion = prediccion.cpu().numpy()
     
-    # Calcular diferencias: 0=correcto, 1=FP, 2=FN
-    diferencias = np.zeros_like(target, dtype=np.int8)
-    diferencias[mascara_valida] = 1
-    diferencias[mascara_valida & (target[mascara_valida] == prediccion[mascara_valida])] = 0
-    diferencias[mascara_valida & (target[mascara_valida] != prediccion[mascara_valida]) & (prediccion[mascara_valida] == ignore_class)] = 2
+    # Identificar las zonas que corresponden a parches de test (donde no es -1)
+    mascara_test_real = target != -1
     
+    # --- CONSTRUCCIÓN DEL MAPA DE DIFERENCIAS SIMPLIFICADO ---
+    # Inicializamos TODO el mapa con 3 (Zona ajena al test / Train / Val)
+    diferencias = np.full_like(target, fill_value=3, dtype=np.int8)
+    
+    # 1. Identificar zonas de cultivos y fondo dentro de test
+    mascara_target_cultivo = (target != ignore_class) & mascara_test_real
+    mascara_pred_cultivo = (prediccion != ignore_class) & mascara_test_real
+    
+    # [Clase 0] ACUERDO / CORRECTO (Verde): Coinciden exactamente
+    # Esto incluye tanto aciertos en cultivos como aciertos en fondo dentro del test
+    mascara_correctos = (target == prediccion) & mascara_test_real
+    diferencias[mascara_correctos] = 0
+    
+    # [Clase 1] ERROR / INCORRECTO (Rojo): No coinciden en absoluto
+    mascara_errores = (target != prediccion) & mascara_test_real
+    diferencias[mascara_errores] = 1
+    
+    # [Clase 2] FONDO DE TEST PURO (Gris Claro): Opcional, para mantener la silueta
+    # Si preferís que el fondo correcto también se pinte de verde (Acierto), borrá las siguientes 2 líneas
+    mascara_fondo_ok = (target == ignore_class) & (prediccion == ignore_class) & mascara_test_real
+    diferencias[mascara_fondo_ok] = 2
+
+    # --- Configuración del Colormap de Clases (Paneles 1 y 2) ---
+    max_clase = int(max(target.max(), prediccion.max()))
+    if max_clase <= 20:
+        cmap_clases = plt.cm.tab20
+    else:
+        colors = plt.cm.tab20(np.linspace(0, 1, 20))
+        colors = np.vstack([colors, plt.cm.tab20b(np.linspace(0, 1, 20))])
+        cmap_clases = ListedColormap(colors)
+    
+    norm_clases = BoundaryNorm(np.arange(-0.5, max_clase + 1.5, 1), cmap_clases.N)
+    
+    # --- RENDERIZADO DE PANELES ---
     fig, axes = plt.subplots(1, 3, figsize=(18, 6))
     
-    # Colormap para clases
-    clases_unicas = np.unique(target[target != ignore_class])
-    num_clases = len(clases_unicas)
-    cmap_clases = plt.cm.tab20
-    norm_clases = BoundaryNorm(np.arange(-0.5, num_clases + 0.5, 1), cmap_clases.N)
-    
-    # Target
+    # Panel 1: Target
     axes[0].imshow(target, cmap=cmap_clases, norm=norm_clases, interpolation='none')
     axes[0].set_title('Target (Ground Truth)', fontsize=14)
     axes[0].axis('off')
     
-    # Predicción
+    # Panel 2: Predicción
     axes[1].imshow(prediccion, cmap=cmap_clases, norm=norm_clases, interpolation='none')
     axes[1].set_title('Inferencia (Predicción)', fontsize=14)
     axes[1].axis('off')
     
-    # Diferencias
-    cmap_diff = ListedColormap(['#2ecc71', '#e74c3c', '#f1c40f'])
-    bounds = [-0.5, 0.5, 1.5, 2.5]
+    # Panel 3: Diferencias Lógicas (True/False)
+    # Índices:      0=Verde,      1=Rojo,         2=Gris Claro,  3=Azul Oscuro
+    # Significado:  Correcto,     Error (Discrepa), Fondo OK,     No es Test
+    colors_diff = ['#2ecc71', '#e74c3c', '#bdc3c7', '#2c3e50']
+    cmap_diff = ListedColormap(colors_diff)
+    bounds = [-0.5, 0.5, 1.5, 2.5, 3.5]
     norm_diff = BoundaryNorm(bounds, cmap_diff.N)
+    
     axes[2].imshow(diferencias, cmap=cmap_diff, norm=norm_diff, interpolation='none')
-    axes[2].set_title('Diferencias\n(Verde=Correcto, Rojo=FP, Amarillo=FN)', fontsize=14)
+    axes[2].set_title('Mapa de Errores en Test\n(Verde=Acierto, Rojo=Error, Gris=Fondo Test, Azul=No Test)', fontsize=11)
     axes[2].axis('off')
     
     plt.tight_layout()
     os.makedirs(dir_exp, exist_ok=True)
-    plt.savefig(f"{dir_exp}/comparacion.png", dpi=300, bbox_inches='tight')
-    print(f"Comparación guardada en {dir_exp}/comparacion.png")
+    plt.savefig(f"{dir_exp}/fig/mapa_testing.png", dpi=300, bbox_inches='tight')
+    print(f"Comparación guardada en {dir_exp}/fig/mapa_testing.png")
     plt.close()
     
-    # Métricas
-    total_validos = mascara_valida.sum()
-    if total_validos > 0:
-        correctos = (target[mascara_valida] == prediccion[mascara_valida]).sum()
-        accuracy = correctos / total_validos
-        print(f"\nAccuracy: {accuracy*100:.2f}%")
-        print(f"Correctos: {correctos:,} | FP: {(diferencias==1).sum():,} | FN: {(diferencias==2).sum():,}")
+    # --- Métricas globales de la imagen ---
+    # Calculamos la precisión enfocado solo en las zonas donde debería haber cultivos
+    total_pixeles_test = mascara_test_real.sum()
+    if total_pixeles_test > 0:
+        n_correctos = mascara_correctos.sum()
+        n_errores = mascara_errores.sum()
+        accuracy_total = n_correctos / total_pixeles_test
+        
+        # Métrica específica para el agro: ¿Qué porcentaje de los cultivos reales se acertaron?
+        total_cultivos = mascara_target_cultivo.sum()
+        n_cultivos_ok = ((target == prediccion) & mascara_target_cultivo).sum()
+        accuracy_cultivos = (n_cultivos_ok / total_cultivos) if total_cultivos > 0 else 0
+        
+        print(f"\n--- Métricas de la reconstrucción (True/False) ---")
+        print(f"Accuracy Total en Test (incluye fondo): {accuracy_total*100:.2f}%")
+        print(f"Accuracy exclusivo en áreas de Cultivos: {accuracy_cultivos*100:.2f}%")
+        print(f"Píxeles Correctos: {n_correctos:,} | Píxeles con Error: {n_errores:,}")
+    else:
+        print("\nNo se encontraron parches de test para evaluar.")
     
     return diferencias
 
 
 def visualizar_matriz_confusion(target, prediccion, dir_exp, class_names=None, ignore_class=0):
-    """Visualiza matriz de confusión"""
-    mascara_valida = target != ignore_class
-    clases_unicas = np.unique(target[mascara_valida])
-    num_clases = len(clases_unicas)
+    """
+    Visualiza la matriz de confusión filtrada únicamente para los cultivos de interés.
+    """
+    # Máscara para aislar el set de test (-1 es el vacío de entrenamiento)
+    mascara_test_real = target != -1
     
+    # -----------------------------------------------------------------
+    # FILTRO DE CULTIVOS DE INTERÉS
+    # Definimos estrictamente las clases que querés ver en la matriz
+    clases_interes = [15, 16, 17, 18, 19, 20]
+    
+    # Nos aseguramos de usar solo las que estén en tu lista de interés
+    if class_names is not None:
+        clases_validas = [c for c in clases_interes if c in class_names]
+    else:
+        clases_validas = clases_interes
+    
+    num_clases = len(clases_validas)
+    # -----------------------------------------------------------------
+
+    clase_a_idx = {clase: idx for idx, clase in enumerate(clases_validas)}
     confusion = np.zeros((num_clases, num_clases), dtype=np.int64)
-    for i, clase_real in enumerate(clases_unicas):
-        for j, clase_pred in enumerate(clases_unicas):
-            mascara = (target == clase_real) & (prediccion == clase_pred) & mascara_valida
-            confusion[i, j] = mascara.sum()
     
+    # Aplanado vectorial de zonas evaluadas en el set de test
+    t_flat = target[mascara_test_real]
+    p_flat = prediccion[mascara_test_real]
+    
+    # Llenar la matriz solo con las interacciones de los cultivos de interés
+    for c_real in clases_validas:
+        for c_pred in clases_validas:
+            idx_i = clase_a_idx[c_real]
+            idx_j = clase_a_idx[c_pred]
+            # Cuenta cuántos píxeles de la clase_real fueron predichos como clase_pred
+            confusion[idx_i, idx_j] = np.sum((t_flat == c_real) & (p_flat == c_pred))
+    
+    # Normalización por filas (porcentaje de acierto por cultivo)
     confusion_norm = confusion.astype(np.float32)
     row_sums = confusion_norm.sum(axis=1, keepdims=True)
     confusion_norm = np.divide(confusion_norm, row_sums, where=row_sums != 0)
     
-    fig, ax = plt.subplots(figsize=(10, 8))
+    # Configuración del gráfico
+    fig, ax = plt.subplots(figsize=(9, 7))
     im = ax.imshow(confusion_norm, cmap='Blues', interpolation='nearest', vmin=0, vmax=1)
     
+    # Generar etiquetas legibles basadas en tu diccionario oficial de QGIS
     if class_names is not None:
-        labels = [class_names.get(c, f"Clase {c}") for c in clases_unicas]
+        labels = [class_names.get(c, f"Clase {c}") for c in clases_validas]
     else:
-        labels = [f"Clase {c}" for c in clases_unicas]
+        labels = [f"Clase {c}" for c in clases_validas]
     
     ax.set_xticks(np.arange(num_clases))
     ax.set_yticks(np.arange(num_clases))
-    ax.set_xticklabels(labels, rotation=45, ha='right')
-    ax.set_yticklabels(labels)
-    ax.set_xlabel('Clase Predicha')
-    ax.set_ylabel('Clase Real')
-    ax.set_title('Matriz de Confusión (%)')
+    ax.set_xticklabels(labels, rotation=45, ha='right', fontsize=10)
+    ax.set_yticklabels(labels, fontsize=10)
+    ax.set_xlabel('Clase Predicha (Modelo)', fontsize=12, labelpad=10)
+    ax.set_ylabel('Clase Real (Target)', fontsize=12, labelpad=10)
+    ax.set_title('Matriz de Confusión de Cultivos (%)\nSet de Test - Córdoba', fontsize=13, pad=20)
     
+    # Escribir los valores numéricos y porcentajes dentro de las celdas
     for i in range(num_clases):
         for j in range(num_clases):
             ax.text(j, i, f"{confusion[i, j]:,}\n({confusion_norm[i, j]*100:.1f}%)",
-                   ha="center", va="center", 
-                   color="black" if confusion_norm[i, j] < 0.5 else "white",
-                   fontsize=8)
+                    ha="center", va="center", 
+                    color="black" if confusion_norm[i, j] < 0.5 else "white",
+                    fontsize=9)
     
-    plt.colorbar(im, ax=ax, label='Porcentaje')
+    plt.colorbar(im, ax=ax, label='Proporción de aciertos')
     plt.tight_layout()
-    plt.savefig(f"{dir_exp}/matriz_confusion.png", dpi=300, bbox_inches='tight')
-    print(f"Matriz de confusión guardada en {dir_exp}/matriz_confusion.png")
+    os.makedirs(dir_exp, exist_ok=True)
+    plt.savefig(f"{dir_exp}/fig/matriz_confusion.png", dpi=300, bbox_inches='tight')
+    print(f"Matriz de confusión (filtrada) guardada en {dir_exp}/fig/matriz_confusion.png")
     plt.close()
-
-
-def inference_y_visualizar(cnf, model, test_indices, posiciones_parches, 
-                          class_names=None, ignore_class=0):
-    """
-    Hace inference sobre los parches de test y visualiza resultados
     
-    Args:
-        cnf: Configuración
-        model: Modelo entrenado
-        test_indices: Lista de índices de test
-        posiciones_parches: Lista de (x, y) para cada parche
-        class_names: Diccionario {clase: nombre} para la matriz de confusión
-        ignore_class: Clase a ignorar (fondo)
-    
-    Returns:
-        target_test: Matriz de ground truth (solo test)
-        prediccion: Matriz de predicción
-    """
+
+def inference_y_visualizar(cnf, model, dataset, test_indices, posiciones_parches, 
+                           class_names=None, ignore_class=0):
+    """Ejecuta la inferencia aislando perfectamente el espacio muestral del set de test."""
     device = cnf.device
     model.eval()
     
-    # Cargar dataset original
-    dataset_completo = CordobaDataset(cnf.file_dataset, normalizar=cnf.normalizar)
+    alto = cnf.alto
+    ancho = cnf.ancho
+    size = cnf.size_parche
     
-    # Dimensiones de la imagen original
-    alto, ancho = 10980, 10980
-    size = 256
-    
-    # Crear matrices para target y predicción
-    target_test = np.zeros((alto, ancho), dtype=np.int64)
-    prediccion = np.zeros((alto, ancho), dtype=np.int64)
+    # CORRECCIÓN: Inicializar con -1 evita que las áreas que no son de test se confundan con la clase 0
+    target_test = np.full((alto, ancho), fill_value=-1, dtype=np.int64)
+    prediccion = np.full((alto, ancho), fill_value=-1, dtype=np.int64)
     
     print(f"Prediciendo {len(test_indices)} parches de test...")
     
     with torch.no_grad():
-        for idx, (x_pos, y_pos) in zip(test_indices, posiciones_parches):
-            # Obtener parche X
-            parche_x, parche_y = dataset_completo[idx]
+        for idx in test_indices:
+            x_pos, y_pos = posiciones_parches[idx]
             
-            # Mover a device y agregar batch dimension
-            parche_x = parche_x.unsqueeze(0).to(device)  # [1, C, H, W]
+            parche_x, parche_y = dataset[idx]
+            parche_x = parche_x.unsqueeze(0).to(device)
             
-            # Predecir
             output = model(parche_x)
-            _, pred = torch.max(output, dim=1)  # [1, H, W]
-            pred = pred.squeeze(0).cpu().numpy()  # [H, W]
+            _, pred = torch.max(output, dim=1)
+            pred = pred.squeeze(0).cpu().numpy()
             
-            # Colocar en las matrices completas
             target_test[y_pos:y_pos+size, x_pos:x_pos+size] = parche_y.numpy()
             prediccion[y_pos:y_pos+size, x_pos:x_pos+size] = pred
     
-#    # Guardar matrices
-#    np.save(f"{cnf.dir_exp}/target_test.npy", target_test)
-#    np.save(f"{cnf.dir_exp}/prediccion_test.npy", prediccion)
-#    print(f"Target guardado en {cnf.dir_exp}/target_test.npy")
-#    print(f"Predicción guardada en {cnf.dir_exp}/prediccion_test.npy")
-    
-    # Visualizar comparación
+    # Ejecutar la función de comparación (esta debe manejar target != -1 como la zona válida de test)
     diferencias = visualizar_comparacion(target_test, prediccion, cnf.dir_exp, ignore_class)
-    
-    # Visualizar matriz de confusión
     visualizar_matriz_confusion(target_test, prediccion, cnf.dir_exp, class_names, ignore_class)
     
     return target_test, prediccion
 
-
 def cargar_modelo_y_predecir(cnf):
-    """
-    Carga modelo y datos, y ejecuta inference
-    """
-    # 1. Definir rutas
+    """Carga el modelo entrenado y ejecuta la inferencia usando la leyenda oficial de QGIS."""
     model_path = f"{cnf.dir_exp}/best_model.pth"
     test_indices_path = f"{cnf.dir_exp}/test_indices.npy"
-    posiciones_path = f"{cnf.dir_exp}/posiciones_parches.npy"
+    dat_path = os.path.dirname(cnf.file_dataset)
+    posiciones_path = f"{dat_path}/posiciones_parches.npy"
     
-    # 3. Cargar índices y posiciones
     test_indices = np.load(test_indices_path)
     posiciones_parches = np.load(posiciones_path)
     
-    # 4. Determinar canales de entrada
-    dataset_temp = CordobaDataset(cnf.file_dataset, normalizar=cnf.normalizar)
-    muestra_x, _ = dataset_temp[0]
+    dataset = CordobaDataset(cnf.file_dataset, normalizar=cnf.normalizar)
+    muestra_x, _ = dataset[0]
     in_channels = muestra_x.shape[0]
     
-    # 5. Cargar modelo
     print(f"Cargando modelo desde: {model_path}")
     model = SimpleUNet(in_channels, cnf.num_classes).to(cnf.device)
+    
     model.load_state_dict(torch.load(model_path, map_location=cnf.device))
     model.eval()
     print("Modelo cargado correctamente")
     
-    # 6. Ejecutar inference
+    # DICCIONARIO OFICIAL ACTUALIZADO (Extraído del QML)
     class_names = {
-        1: "Maíz",
-        2: "Soja",
-        3: "Trigo",
-        4: "Girasol",
-        5: "Algodón",
-        # ... agregar todas las clases
+        0: "Fondo / No clasificado",
+        1: "Monte",
+        2: "Arbustales y matorrales",
+        3: "Pastizal natural",
+        4: "Pastizal natural con rocas o suelo desnudo",
+        5: "Rocas",
+        6: "Suelo desnudo",
+        7: "Salina",
+        8: "Cuerpos de agua",
+        9: "Zonas anegables",
+        10: "Cursos de agua",
+        11: "Zona urbana consolidada",
+        12: "Zona urbana en proceso de consolidación",
+        13: "Zona urbana sin consolidar",
+        14: "Infraestructura vial",
+        15: "Trigo",
+        16: "Maíz",
+        17: "Soja",
+        18: "Maní",
+        19: "Sorgo",
+        20: "Trigo-Maíz de segunda",
+        21: "Trigo-Soja de segunda",
+        22: "Cultivos anuales irrigados",
+        23: "Pasturas implantadas",
+        24: "Pasturas naturales manejadas",
+        25: "Plantaciones forestales maderables",
+        26: "Plantaciones perennes (frutales) de secano",
+        27: "Plantaciones perennes (frutales) irrigadas"
     }
     
     target_test, prediccion = inference_y_visualizar(
-        cnf, model, test_indices, posiciones_parches, 
+        cnf, model, dataset, test_indices, posiciones_parches, 
         class_names=class_names, ignore_class=0
     )
     
     return target_test, prediccion
 
 
+
 if __name__ == "__main__":
-    # 1. Configuración
     cnf = Cnf()
-    cnf.file_dataset = "../dat/train/dataset_20JLL.npz"
-    cnf.dir_exp = "../dat/exp4"
-    cnf.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    
-    # 2. Cargar modelo y hacer inference
     target_test, prediccion = cargar_modelo_y_predecir(cnf)
     
     print("\n¡Inference completada!")
     print(f"Resultados guardados en {cnf.dir_exp}")
+    
+

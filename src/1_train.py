@@ -10,28 +10,7 @@ sys.path.append(os.path.abspath("../"))
 from utils.dataset import CordobaDataset
 from utils.model import SimpleUNet
 from utils import utils
-
-class Cnf:
-    """ Todos los parametros de configuracion van aqui """
-    # Datos
-    file_dataset = "../dat/train/dataset_20JLL.npz"
-    dir_exp = "../dat/exp6"
-        
-    # Entrenamiento
-    batch_size = 16
-    epochs = 100
-    learning_rate = 5e-4
-    num_classes = 50
-    patience = 50  # early stopping patience
-        
-    # Device
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        
-    # Normalización
-    normalizar = True
-        
-    # Semilla para reproducibilidad
-    seed = 42
+from cnf import Cnf # configuracion
         
 def calcular_accuracy(predicciones, etiquetas, ignore_index=0):
     """Calcula el porcentaje de píxeles correctos ignorando el fondo (NoData)"""
