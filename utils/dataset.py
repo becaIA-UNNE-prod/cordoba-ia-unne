@@ -4,30 +4,55 @@ import torch
 from torch.utils.data import Dataset
 
 class CordobaDataset(Dataset):
-    def __init__(self, dir_parches):
-        self.dir_parches = dir_parches
-        # Buscar solo los archivos X y ordenarlos para asegurar correspondencia
-        self.archivos_x = sorted([f for f in os.listdir(dir_parches) if f.startswith('X_')])
+    def __init__(self, ruta_npz, normalizar=True):
+        """
+        Dataset para clasificación de cultivos con Sentinel-2
+        
+        Args:
+            ruta_npz: Ruta al archivo .npz con los datos
+            normalizar: Si True, normaliza los valores dividiendo por 10000
+        """
+        self.ruta_npz = ruta_npz
+        self.normalizar = normalizar
+        
+        print(f"Cargando dataset desde: {ruta_npz}")
+        data = np.load(ruta_npz, allow_pickle=True)
+        
+        self.X = data['X'].astype(np.float32)
+        self.Y = data['Y'].astype(np.int64)
+        self.meses = data['meses']
+        self.tile_id = str(data['tile_id'])
+        
+        self.n_samples = self.X.shape[0]
+        print(f"Dataset cargado. Samples: {self.n_samples}")
+        print(f"X shape: {self.X.shape}")
+        print(f"Y shape: {self.Y.shape}")
+        print(f"Valores únicos en Y: {np.unique(self.Y)}")
 
     def __len__(self):
-        return len(self.archivos_x)
+        return self.n_samples
 
     def __getitem__(self, idx):
-        nombre_x = self.archivos_x[idx]
-        nombre_y = nombre_x.replace('X_', 'Y_')
-
-        ruta_x = os.path.join(self.dir_parches, nombre_x)
-        ruta_y = os.path.join(self.dir_parches, nombre_y)
-
-        # Cargar matrices
-        array_x = np.load(ruta_x).astype(np.float32)
-        array_y = np.load(ruta_y).astype(np.int64)
-
-        # Normalización simple para Sentinel-2 (valores L2A suelen estar entre 0 y 10000)
-        array_x = array_x / 10000.0
-
+        array_x = self.X[idx]
+        array_y = self.Y[idx]
+        
+        # Normalización (opcional)
+        if self.normalizar:
+            array_x = array_x / 10000.0
+        
         # Convertir a tensores de PyTorch
         tensor_x = torch.from_numpy(array_x)
         tensor_y = torch.from_numpy(array_y)
-
+        
         return tensor_x, tensor_y
+
+    def get_metadata(self):
+        """Retorna metadatos del dataset"""
+        return {
+            'tile_id': self.tile_id,
+            'n_samples': self.n_samples,
+            'shape_x': self.X.shape,
+            'shape_y': self.Y.shape,
+            'meses': self.meses,
+            'valores_y': np.unique(self.Y)
+        }
