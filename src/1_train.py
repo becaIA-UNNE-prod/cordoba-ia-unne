@@ -9,7 +9,30 @@ import sys
 sys.path.append(os.path.abspath("../"))
 from utils.dataset import CordobaDataset
 from utils.model import SimpleUNet
+from utils import utils
 
+class Cnf:
+    """ Todos los parametros de configuracion van aqui """
+    # Datos
+    file_dataset = "../dat/train/dataset_20JLL.npz"
+    dir_exp = "../dat/exp6"
+        
+    # Entrenamiento
+    batch_size = 16
+    epochs = 100
+    learning_rate = 5e-4
+    num_classes = 50
+    patience = 50  # early stopping patience
+        
+    # Device
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        
+    # Normalización
+    normalizar = True
+        
+    # Semilla para reproducibilidad
+    seed = 42
+        
 def calcular_accuracy(predicciones, etiquetas, ignore_index=0):
     """Calcula el porcentaje de píxeles correctos ignorando el fondo (NoData)"""
     pred_clases = torch.argmax(predicciones, dim=1)
@@ -44,60 +67,77 @@ def evaluar(modelo, dataloader, criterion, device):
     acc_promedio = running_acc / len(dataloader)
     return loss_promedio, acc_promedio
 
-def entrenar():
-    DIR_DATASET = "../dat/train"
-    DIR_EXP='../dat/exp2'
-    BATCH_SIZE = 8
-    EPOCHS = 100
-    LEARNING_RATE = 1e-4
-    NUM_CLASSES = 50
-
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"Dispositivo: {device}")
+def entrenar(cnf):
+    """
+    Función principal de entrenamiento
+    """
+    # Fijar semilla para reproducibilidad
+    torch.manual_seed(cnf.seed)
+    np.random.seed(cnf.seed)
+    
+    print(f"Dispositivo: {cnf.device}")
 
     # 1. Cargar dataset completo
-    dataset_completo = CordobaDataset(DIR_DATASET)
+    dataset_completo = CordobaDataset(cnf.file_dataset, normalizar=cnf.normalizar)
     total_size = len(dataset_completo)
 
     muestra_x, _ = dataset_completo[0]
-    IN_CHANNELS = muestra_x.shape[0]
+    in_channels = muestra_x.shape[0]
 
-    print(f"Autodetectados {IN_CHANNELS} canales de entrada (Meses x Bandas).")
-
+    print(f"Autodetectados {in_channels} canales de entrada (Meses x Bandas).")
+    print(f"Imagenes de {muestra_x.shape[1]} x {muestra_x.shape[2]}")
+    
     # 2. Dividir en Train (70%), Val (15%), Test (15%)
     train_size = int(0.7 * total_size)
     val_size = int(0.15 * total_size)
     test_size = total_size - train_size - val_size
 
-    train_dataset, val_dataset, test_dataset = random_split(
-        dataset_completo, [train_size, val_size, test_size]
+    # Crear lista de índices y hacer split
+    indices = list(range(total_size))
+    train_indices, val_indices, test_indices = random_split(
+        indices, [train_size, val_size, test_size]
     )
+    
+    # Guardar índices de test para inference
+    os.makedirs(cnf.dir_exp, exist_ok=True)
+    np.save(f"{cnf.dir_exp}/test_indices.npy", list(test_indices))
+    print(f"Índices de test guardados en {cnf.dir_exp}/test_indices.npy")
 
-    print(f"Splits -> Train: {train_size} | Val: {val_size} | Test: {test_size}")
+    # Crear datasets usando Subset
+    train_dataset = torch.utils.data.Subset(dataset_completo, train_indices)
+    val_dataset = torch.utils.data.Subset(dataset_completo, val_indices)
+    test_dataset = torch.utils.data.Subset(dataset_completo, test_indices)
 
-    train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
-    val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
-    test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False)
+    print(f"Splits -> Train: {len(train_dataset)} | Val: {len(val_dataset)} | Test: {len(test_dataset)}")
 
-    model = SimpleUNet(IN_CHANNELS, NUM_CLASSES).to(device)
+    train_loader = DataLoader(train_dataset, batch_size=cnf.batch_size, shuffle=True)
+    val_loader = DataLoader(val_dataset, batch_size=cnf.batch_size, shuffle=False)
+    test_loader = DataLoader(test_dataset, batch_size=cnf.batch_size, shuffle=False)
+
+    # 3. Crear modelo
+    model = SimpleUNet(in_channels, cnf.num_classes).to(cnf.device)
     criterion = nn.CrossEntropyLoss(ignore_index=0)
-    optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
+    optimizer = optim.Adam(model.parameters(), lr=cnf.learning_rate)
 
-    # 3. Inicializar listas para guardar métricas
+    # Inicializar early stopping
+    best_val_loss = float('inf')
+    patience_counter = 0
+
+    # Inicializar listas para guardar métricas
     train_losses = []
     train_accs = []
     val_losses = []
     val_accs = []
 
     # 4. Bucle de Entrenamiento
-    for epoch in range(EPOCHS):
+    for epoch in range(cnf.epochs):
         model.train()
         train_loss = 0.0
         train_acc = 0.0
 
         for batch_idx, (datos_x, etiquetas_y) in enumerate(train_loader):
-            datos_x = datos_x.to(device)
-            etiquetas_y = etiquetas_y.to(device)
+            datos_x = datos_x.to(cnf.device)
+            etiquetas_y = etiquetas_y.to(cnf.device)
 
             optimizer.zero_grad()
             predicciones = model(datos_x)
@@ -112,37 +152,72 @@ def entrenar():
         train_loss_epoch = train_loss / len(train_loader)
         train_acc_epoch = train_acc / len(train_loader)
 
-        # Guardar métricas de entrenamiento
         train_losses.append(train_loss_epoch)
         train_accs.append(train_acc_epoch)
 
-        # 5. Fase de Validación
-        val_loss_epoch, val_acc_epoch = evaluar(model, val_loader, criterion, device)
+        # Fase de Validación
+        val_loss_epoch, val_acc_epoch = evaluar(model, val_loader, criterion, cnf.device)
 
-        # Guardar métricas de validación
         val_losses.append(val_loss_epoch)
         val_accs.append(val_acc_epoch)
 
-        print(f"Epoch [{epoch+1}/{EPOCHS}] "
+        print(f"Epoch [{epoch+1}/{cnf.epochs}] "
               f"| Train Loss: {train_loss_epoch:.4f} Acc: {train_acc_epoch:.4f} "
               f"| Val Loss: {val_loss_epoch:.4f} Acc: {val_acc_epoch:.4f}")
 
-    # 6. Fase de Testeo Final
+        print('Validacion:',val_loss_epoch,best_val_loss)
+        
+        # Guardar el mejor modelo
+        if val_loss_epoch < best_val_loss:
+            os.makedirs(cnf.dir_exp, exist_ok=True)
+            torch.save(model.state_dict(), f"{cnf.dir_exp}/best_model.pth")
+            print(f"Mejor modelo guardado en {cnf.dir_exp}/best_model.pth")
+            
+        # Early Stopping
+        should_stop, best_val_loss, patience_counter = early_stopping(
+            val_loss_epoch, 
+            best_val_loss, 
+            patience_counter, 
+            cnf.patience, 
+            epoch
+        )
+        
+        if should_stop:
+            break
+    
+    # Cargar el mejor modelo para test
+    best_model_path = f"{cnf.dir_exp}/best_model.pth"
+    if os.path.exists(best_model_path):
+        model.load_state_dict(torch.load(best_model_path))
+        print(f"Modelo cargado desde {best_model_path}")
+    
+    # 5. Fase de Testeo Final
     print("\n--- Evaluando en conjunto de TEST ---")
-    test_loss, test_acc = evaluar(model, test_loader, criterion, device)
+    test_loss, test_acc = evaluar(model, test_loader, criterion, cnf.device)
     print(f"Test Loss: {test_loss:.4f} | Test Acc: {test_acc:.4f}")
 
-    # 7. Guardar modelo
-    os.makedirs(DIR_EXP, exist_ok=True)
-    torch.save(model.state_dict(), f"{DIR_EXP}/modelo_cordoba.pth")
-    print("Modelo guardado.")
+    # 6. Guardar modelo final
+    os.makedirs(cnf.dir_exp, exist_ok=True)
+    torch.save(model.state_dict(), f"{cnf.dir_exp}/modelo_final.pth")
+    print(f"Modelo final guardado en {cnf.dir_exp}/modelo_final.pth")
 
-    # 8. Graficar métricas
-    graficar_metricas(train_losses, val_losses, train_accs, val_accs, EPOCHS, DIR_EXP)
+    # 7. Graficar métricas
+    graficar_metricas(train_losses, val_losses, train_accs, val_accs,
+                      len(train_losses), cnf.dir_exp)
     
-    # 9. Opcional: guardar métricas en archivo
-    guardar_metricas(train_losses, val_losses, train_accs, val_accs, test_loss, test_acc, EPOCHS, DIR_EXP)
+    # 8. Guardar métricas en archivo
+    guardar_metricas(train_losses, val_losses, train_accs, val_accs, test_loss,
+                     test_acc, len(train_losses), cnf.dir_exp)
 
+    # 9. Guardar configuración
+    cnf_dict = utils.obs2dict(Cnf)
+    config_path = f"{cnf.dir_exp}/config.txt"
+    with open(config_path, 'w') as f:
+        for key, value in cnf_dict.items():
+            f.write(f"{key}: {value}\n")
+    print(f"Configuracion guardada en {config_path}")
+    
+    
 def graficar_metricas(train_losses, val_losses, train_accs, val_accs, epochs, exp_dir):
     """
     Grafica las pérdidas y precisiones de entrenamiento y validación
@@ -172,10 +247,23 @@ def graficar_metricas(train_losses, val_losses, train_accs, val_accs, epochs, ex
     plt.tight_layout()
     
     # Guardar figura
-    os.makedirs(f"{exp_dir}/graficos", exist_ok=True)
-    plt.savefig(f"{exp_dir}/graficos/metricas_entrenamiento.png", dpi=300, bbox_inches='tight')
-    print(f"Gráfico guardado en {exp_dir}/graficos/metricas_entrenamiento.png")
+    os.makedirs(f"{exp_dir}/fig", exist_ok=True)
+    plt.savefig(f"{exp_dir}/fig/metricas_entrenamiento.png", dpi=300, bbox_inches='tight')
+    print(f"Gráfico guardado en {exp_dir}/fig/metricas_entrenamiento.png")
     
+def early_stopping(val_loss, best_val_loss, patience_counter, patience, epoch):
+
+    improved = val_loss < best_val_loss
+    
+    if improved:
+        best_val_loss = val_loss
+        patience_counter = 0
+    else:
+        patience_counter += 1
+
+    should_stop = patience_counter >= patience
+    
+    return should_stop, best_val_loss, patience_counter
 
 def guardar_metricas(train_losses, val_losses, train_accs, val_accs, test_loss, test_acc, epochs, exp_dir):
     """
@@ -220,8 +308,7 @@ def cargar_y_graficar_metricas(exp_dir,ruta_metricas="metricas_entrenamiento.npz
     graficar_metricas(train_losses, val_losses, train_accs, val_accs, epochs, exp_dir)
 
 if __name__ == "__main__":
-    entrenar()
+    cnf = Cnf()    
+    entrenar(cnf)
     
-    # Si quieres cargar y graficar desde archivo guardado:
-    # cargar_y_graficar_metricas()
 
