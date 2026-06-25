@@ -62,6 +62,7 @@ def extraer_parches_desde_composites(tile_id, ruta_mascara, dir_composites, dir_
     X = np.stack(parches_x, axis=0)
     Y = np.stack(parches_y, axis=0)
     
+    os.makedirs(dir_salida, exist_ok=True)
     ruta_salida = os.path.join(dir_salida, f"dataset_{tile_id}.npz")
     np.savez_compressed(ruta_salida, X=X, Y=Y, meses=archivos_mensuales, tile_id=tile_id)
     
@@ -81,6 +82,7 @@ def crear_posiciones(dir_salida, size=256, step=192, alto=10980, ancho=10980):
         for x in range(0, ancho - size, step):
             posiciones.append((x, y))
     
+    os.makedirs(dir_salida, exist_ok=True)
     np.save(os.path.join(dir_salida, "posiciones_parches.npy"), np.array(posiciones))
     print(f"Posiciones guardadas en {dir_salida}/posiciones_parches.npy")
     print(f"Total: {len(posiciones)} posiciones")
