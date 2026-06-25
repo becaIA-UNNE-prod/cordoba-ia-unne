@@ -60,7 +60,7 @@ def extraer_parches_desde_composites(tile_id, ruta_mascara, dir_composites, dir_
             contador_parches += 1
             if contador_parches % 50 == 0:
                 elapsed = time.time() - start_time
-                    print(f" Procesados {contador_parches} parches en {elapsed:.1f}s...")
+                print(f" Procesados {contador_parches} parches en {elapsed:.1f}s...")
                           
     if contador_parches == 0:
         print(f"Advertencia: No se encontraron parches con cultivos")
