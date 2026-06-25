@@ -99,7 +99,7 @@ def cargar_dataset(ruta_npz):
 if __name__ == "__main__":
     
     BASE_DIR = "/mnt/yacy_1/prod/ferreyra/dataset"
-    TILE_PRUEBA = "20JLL"
+    TILE_PRUEBA = "T20JLL"
     RUTA_MASCARA = f"{BASE_DIR}/etiquetas/etiqueta_20JLL_10m_test.tif"
     DIR_COMPOSITES = f"{BASE_DIR}/composites"
     DIR_DATASET = f"{BASE_DIR}/train"

@@ -7,7 +7,7 @@ class Cnf:
     """ Todos los parametros de configuracion van aqui """
     # Datos
     base_dir = "/mnt/yacy_1/prod/ferreyra/dataset"
-    file_dataset = f"{base_dir}/train/dataset_20JLL.npz"
+    file_dataset = f"{base_dir}/train/dataset_T20JLL.npz"
     dir_exp = f"{base_dir}/exp6"
         
     # Remapeo de etiquetas originales (0-27) al esquema simplificado:
