@@ -104,7 +104,6 @@ if __name__ == "__main__":
     DIR_COMPOSITES = f"{BASE_DIR}/composites"
     DIR_DATASET = f"{BASE_DIR}/train"
     crear_posiciones(DIR_DATASET, size=256, step=256)
-    quit()
     archivo_salida = extraer_parches_desde_composites(
         TILE_PRUEBA, 
         RUTA_MASCARA, 
