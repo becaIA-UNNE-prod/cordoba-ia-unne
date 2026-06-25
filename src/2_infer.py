@@ -118,8 +118,8 @@ def visualizar_matriz_confusion(target, prediccion, dir_exp, class_names=None, i
     
     # -----------------------------------------------------------------
     # FILTRO DE CULTIVOS DE INTERÉS
-    # Definimos estrictamente las clases que querés ver en la matriz
-    clases_interes = [15, 16, 17, 18, 19, 20]
+    # Clases del esquema remapeado (2=Trigo ... 7=Otros cultivos)
+    clases_interes = [2, 3, 4, 5, 6, 7]
     
     # Nos aseguramos de usar solo las que estén en tu lista de interés
     if class_names is not None:
@@ -230,48 +230,18 @@ def cargar_modelo_y_predecir(cnf):
     test_indices = np.load(test_indices_path)
     posiciones_parches = np.load(posiciones_path)
     
-    dataset = CordobaDataset(cnf.file_dataset, normalizar=cnf.normalizar)
+    dataset = CordobaDataset(cnf.file_dataset, normalizar=cnf.normalizar, label_map=cnf.label_remap)
     muestra_x, _ = dataset[0]
     in_channels = muestra_x.shape[0]
-    
+
     print(f"Cargando modelo desde: {model_path}")
     model = SimpleUNet(in_channels, cnf.num_classes).to(cnf.device)
-    
+
     model.load_state_dict(torch.load(model_path, map_location=cnf.device))
     model.eval()
     print("Modelo cargado correctamente")
-    
-    # DICCIONARIO OFICIAL ACTUALIZADO (Extraído del QML)
-    class_names = {
-        0: "Fondo / No clasificado",
-        1: "Monte",
-        2: "Arbustales y matorrales",
-        3: "Pastizal natural",
-        4: "Pastizal natural con rocas o suelo desnudo",
-        5: "Rocas",
-        6: "Suelo desnudo",
-        7: "Salina",
-        8: "Cuerpos de agua",
-        9: "Zonas anegables",
-        10: "Cursos de agua",
-        11: "Zona urbana consolidada",
-        12: "Zona urbana en proceso de consolidación",
-        13: "Zona urbana sin consolidar",
-        14: "Infraestructura vial",
-        15: "Trigo",
-        16: "Maíz",
-        17: "Soja",
-        18: "Maní",
-        19: "Sorgo",
-        20: "Trigo-Maíz de segunda",
-        21: "Trigo-Soja de segunda",
-        22: "Cultivos anuales irrigados",
-        23: "Pasturas implantadas",
-        24: "Pasturas naturales manejadas",
-        25: "Plantaciones forestales maderables",
-        26: "Plantaciones perennes (frutales) de secano",
-        27: "Plantaciones perennes (frutales) irrigadas"
-    }
+
+    class_names = cnf.class_names
     
     target_test, prediccion = inference_y_visualizar(
         cnf, model, dataset, test_indices, posiciones_parches, 

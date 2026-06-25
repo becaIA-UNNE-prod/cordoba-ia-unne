@@ -16,7 +16,7 @@ def generar_mapa_clasificacion():
     RUTA_PESOS = "./pesos/modelo_cordoba_test.pth"
     RUTA_SALIDA = "./prediccion_T20JLL.tif"
 
-    NUM_CLASSES = 50
+    NUM_CLASSES = 8
     SIZE = 512  # Ventana de inferencia
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

@@ -57,7 +57,7 @@ def entrenar(cnf):
     print(f"Dispositivo: {cnf.device}")
 
     # 1. Cargar dataset completo
-    dataset_completo = CordobaDataset(cnf.file_dataset, normalizar=cnf.normalizar)
+    dataset_completo = CordobaDataset(cnf.file_dataset, normalizar=cnf.normalizar, label_map=cnf.label_remap)
     total_size = len(dataset_completo)
 
     muestra_x, _ = dataset_completo[0]

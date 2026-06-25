@@ -1,3 +1,9 @@
+# Geodatos
+*.tif
+*.tif.aux.xml
+*.qml
+*.xml
+
 # misc
 dataset/
 mascaras_procesadas/

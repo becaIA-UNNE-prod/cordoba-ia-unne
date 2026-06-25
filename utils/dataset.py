@@ -4,25 +4,30 @@ import torch
 from torch.utils.data import Dataset
 
 class CordobaDataset(Dataset):
-    def __init__(self, ruta_npz, normalizar=True):
+    def __init__(self, ruta_npz, normalizar=True, label_map=None):
         """
         Dataset para clasificación de cultivos con Sentinel-2
-        
+
         Args:
             ruta_npz: Ruta al archivo .npz con los datos
             normalizar: Si True, normaliza los valores dividiendo por 10000
+            label_map: Array numpy de remapeo (label_map[valor_original] = clase_nueva).
+                       Si None, se usan los valores originales.
         """
         self.ruta_npz = ruta_npz
         self.normalizar = normalizar
-        
+
         print(f"Cargando dataset desde: {ruta_npz}")
         data = np.load(ruta_npz, allow_pickle=True)
-        
+
         self.X = data['X'].astype(np.float32)
         self.Y = data['Y'].astype(np.int64)
         self.meses = data['meses']
         self.tile_id = str(data['tile_id'])
-        
+
+        if label_map is not None:
+            self.Y = label_map[self.Y]
+
         self.n_samples = self.X.shape[0]
         print(f"Dataset cargado. Samples: {self.n_samples}")
         print(f"X shape: {self.X.shape}")
