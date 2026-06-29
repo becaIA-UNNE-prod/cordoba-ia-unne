@@ -8,37 +8,39 @@ class Cnf:
     # Datos
     base_dir = "/mnt/yacy_1/prod/ferreyra/dataset"
     file_dataset = f"{base_dir}/train/dataset_T20JLL.npz"
-    dir_exp = f"{base_dir}/exp6"
+    dir_exp = f"{base_dir}/exp7"
         
-    # Remapeo de etiquetas originales (0-27) al esquema simplificado:
+    # Remapeo de etiquetas originales (0-27) a esquema de 9 clases:
     #   0 = NoData
-    #   1 = No cultivos  (clases originales 1-14)
-    #   2 = Trigo        (15)
-    #   3 = Maíz         (16)
-    #   4 = Soja         (17)
-    #   5 = Maní         (18)
-    #   6 = Sorgo        (19)
-    #   7 = Otros cultivos (20-27)
+    #   1 = Natural          (1-10: monte, arbustales, pastizal, suelo desnudo, rocas, salina, agua, anegables, cursos de agua, ...)
+    #   2 = Urbano/Infraest. (11-14: urbano consolidado, en consolidación, sin consolidar, vial)
+    #   3 = Trigo            (15)
+    #   4 = Maíz             (16)
+    #   5 = Soja             (17)
+    #   6 = Maní             (18)
+    #   7 = Sorgo            (19)
+    #   8 = Otros cultivos   (20-27: dobles, pasturas, plantaciones, frutales)
     label_remap = np.array(
-        [0] + [1]*14 + [2, 3, 4, 5, 6] + [7]*8,
+        [0] + [1]*10 + [2]*4 + [3, 4, 5, 6, 7] + [8]*8,
         dtype=np.int64
     )
     class_names = {
         0: "NoData",
-        1: "No cultivos",
-        2: "Trigo",
-        3: "Maíz",
-        4: "Soja",
-        5: "Maní",
-        6: "Sorgo",
-        7: "Otros cultivos",
+        1: "Natural",
+        2: "Urbano/Infraestructura",
+        3: "Trigo",
+        4: "Maíz",
+        5: "Soja",
+        6: "Maní",
+        7: "Sorgo",
+        8: "Otros cultivos",
     }
 
     # Entrenamiento
     batch_size = 16
     epochs = 100
     learning_rate = 5e-4
-    num_classes = 8
+    num_classes = 9
     patience = 50  # early stopping patience
         
     # Device

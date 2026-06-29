@@ -10,6 +10,13 @@ from cnf import Cnf # configuracion
 from utils.model import SimpleUNet
 from utils.dataset import CordobaDataset
 
+try:
+    import rasterio
+    from rasterio.windows import Window
+    RASTERIO_AVAILABLE = True
+except ImportError:
+    RASTERIO_AVAILABLE = False
+
 def visualizar_comparacion(target, prediccion, dir_exp, ignore_class=0):
     """
     Visualiza target, predicción y diferencias en 3 paneles usando un enfoque lógico
@@ -252,11 +259,88 @@ def cargar_modelo_y_predecir(cnf):
 
 
 
-if __name__ == "__main__":
-    cnf = Cnf()
-    target_test, prediccion = cargar_modelo_y_predecir(cnf)
-    
-    print("\n¡Inference completada!")
-    print(f"Resultados guardados en {cnf.dir_exp}")
-    
+def generar_mapa_clasificacion(cnf, dir_composites, ruta_mascara, ruta_salida, tile=None):
+    """
+    Inferencia sobre un tile completo leyendo composites mensuales con rasterio.
+    Escribe el resultado como un GeoTIFF de 1 banda (clase por píxel).
+    """
+    if not RASTERIO_AVAILABLE:
+        raise ImportError("rasterio no está instalado. Instalalo con: pip install rasterio")
 
+    model_path = f"{cnf.dir_exp}/best_model.pth"
+    size = cnf.size_parche
+
+    archivos_mensuales = sorted([
+        f for f in os.listdir(dir_composites)
+        if (tile is None or f.startswith(tile)) and f.endswith('.tif')
+    ])
+    if not archivos_mensuales:
+        raise FileNotFoundError(f"No se encontraron composites en {dir_composites}" +
+                                (f" para tile {tile}" if tile else ""))
+
+    in_channels = len(archivos_mensuales) * 4
+    print(f"Autodetectados {in_channels} canales ({len(archivos_mensuales)} meses).")
+
+    model = SimpleUNet(in_channels, cnf.num_classes).to(cnf.device)
+    model.load_state_dict(torch.load(model_path, map_location=cnf.device))
+    model.eval()
+    print(f"Modelo cargado desde: {model_path}")
+
+    with rasterio.open(ruta_mascara) as src_ref:
+        meta = src_ref.meta.copy()
+        alto, ancho = src_ref.height, src_ref.width
+    meta.update(dtype=rasterio.uint8, count=1, nodata=0)
+
+    print(f"Dimensiones del mapa a predecir: {ancho} x {alto} píxeles.")
+    print("Prediciendo por bloques...")
+
+    os.makedirs(os.path.dirname(os.path.abspath(ruta_salida)), exist_ok=True)
+
+    with rasterio.open(ruta_salida, 'w', **meta) as dst:
+        with torch.no_grad():
+            for y in range(0, alto, size):
+                for x in range(0, ancho, size):
+                    w = min(size, ancho - x)
+                    h = min(size, alto - y)
+                    ventana = Window(x, y, w, h)
+
+                    parches = []
+                    for archivo_mes in archivos_mensuales:
+                        with rasterio.open(os.path.join(dir_composites, archivo_mes)) as src_mes:
+                            parches.append(src_mes.read(window=ventana))
+
+                    parche_x = np.concatenate(parches, axis=0).astype(np.float32) / 10000.0
+                    tensor_x = torch.from_numpy(parche_x).unsqueeze(0).to(cnf.device)
+
+                    salida = model(tensor_x)
+                    pred = torch.argmax(salida, dim=1).squeeze(0).cpu().numpy().astype(np.uint8)
+                    dst.write(pred, 1, window=ventana)
+
+    print(f"Mapa de clasificación guardado en: {ruta_salida}")
+
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Inferencia del modelo de cultivos")
+    parser.add_argument("--modo", choices=["test", "mapa"], default="test",
+                        help="'test': evalúa sobre el set de test del dataset; "
+                             "'mapa': genera un GeoTIFF completo sobre el tile")
+    parser.add_argument("--composites", default=None, help="Directorio de composites mensuales (modo mapa)")
+    parser.add_argument("--mascara", default=None, help="Ruta al TIF de referencia espacial (modo mapa)")
+    parser.add_argument("--salida", default=None, help="Ruta de salida del GeoTIFF (modo mapa)")
+    parser.add_argument("--tile", default=None, help="Prefijo del tile a filtrar en composites (modo mapa)")
+    args = parser.parse_args()
+
+    cnf = Cnf()
+
+    if args.modo == "test":
+        target_test, prediccion = cargar_modelo_y_predecir(cnf)
+        print("\n¡Inference completada!")
+        print(f"Resultados guardados en {cnf.dir_exp}")
+
+    elif args.modo == "mapa":
+        if not args.composites or not args.mascara or not args.salida:
+            parser.error("--modo mapa requiere --composites, --mascara y --salida")
+        generar_mapa_clasificacion(cnf, args.composites, args.mascara, args.salida, tile=args.tile)
+        print("\n¡Mapa de clasificación generado!")

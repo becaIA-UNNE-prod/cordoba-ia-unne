@@ -24,11 +24,14 @@ def calcular_accuracy(predicciones, etiquetas, ignore_index=0):
         return 0.0
     return correctos / total_validos
 
-def evaluar(modelo, dataloader, criterion, device):
-    """Función genérica para evaluar en Validación o Test"""
+def evaluar(modelo, dataloader, criterion, device, num_classes):
+    """Evalúa loss, accuracy e IoU por clase sobre un dataloader completo."""
     modelo.eval()
     running_loss = 0.0
     running_acc = 0.0
+    tp = torch.zeros(num_classes)
+    fp = torch.zeros(num_classes)
+    fn = torch.zeros(num_classes)
 
     with torch.no_grad():
         for datos_x, etiquetas_y in dataloader:
@@ -38,13 +41,28 @@ def evaluar(modelo, dataloader, criterion, device):
             salidas = modelo(datos_x)
             loss = criterion(salidas, etiquetas_y)
             acc = calcular_accuracy(salidas, etiquetas_y)
-
             running_loss += loss.item()
             running_acc += acc
 
+            pred_clases = torch.argmax(salidas, dim=1).cpu()
+            labels_cpu = etiquetas_y.cpu()
+            mascara = labels_cpu != 0
+            for c in range(1, num_classes):
+                pred_c = (pred_clases == c) & mascara
+                true_c = (labels_cpu == c) & mascara
+                tp[c] += (pred_c & true_c).sum()
+                fp[c] += (pred_c & ~true_c).sum()
+                fn[c] += (~pred_c & true_c).sum()
+
     loss_promedio = running_loss / len(dataloader)
     acc_promedio = running_acc / len(dataloader)
-    return loss_promedio, acc_promedio
+
+    iou_por_clase = {}
+    for c in range(1, num_classes):
+        denom = (tp[c] + fp[c] + fn[c]).item()
+        iou_por_clase[c] = tp[c].item() / denom if denom > 0 else 0.0
+
+    return loss_promedio, acc_promedio, iou_por_clase
 
 def entrenar(cnf):
     """
@@ -122,6 +140,7 @@ def entrenar(cnf):
     train_accs = []
     val_losses = []
     val_accs = []
+    val_mious = []
 
     # 4. Bucle de Entrenamiento
     for epoch in range(cnf.epochs):
@@ -150,14 +169,17 @@ def entrenar(cnf):
         train_accs.append(train_acc_epoch)
 
         # Fase de Validación
-        val_loss_epoch, val_acc_epoch = evaluar(model, val_loader, criterion, cnf.device)
+        val_loss_epoch, val_acc_epoch, val_iou = evaluar(
+            model, val_loader, criterion, cnf.device, cnf.num_classes)
+        val_miou = np.mean(list(val_iou.values()))
 
         val_losses.append(val_loss_epoch)
         val_accs.append(val_acc_epoch)
+        val_mious.append(val_miou)
 
         print(f"Epoch [{epoch+1}/{cnf.epochs}] "
               f"| Train Loss: {train_loss_epoch:.4f} Acc: {train_acc_epoch:.4f} "
-              f"| Val Loss: {val_loss_epoch:.4f} Acc: {val_acc_epoch:.4f}")
+              f"| Val Loss: {val_loss_epoch:.4f} Acc: {val_acc_epoch:.4f} mIoU: {val_miou:.4f}")
 
         print('Validacion:',val_loss_epoch,best_val_loss)
         
@@ -187,8 +209,14 @@ def entrenar(cnf):
     
     # 5. Fase de Testeo Final
     print("\n--- Evaluando en conjunto de TEST ---")
-    test_loss, test_acc = evaluar(model, test_loader, criterion, cnf.device)
-    print(f"Test Loss: {test_loss:.4f} | Test Acc: {test_acc:.4f}")
+    test_loss, test_acc, test_iou = evaluar(
+        model, test_loader, criterion, cnf.device, cnf.num_classes)
+    test_miou = np.mean(list(test_iou.values()))
+    print(f"Test Loss: {test_loss:.4f} | Test Acc: {test_acc:.4f} | mIoU: {test_miou:.4f}")
+    print("\nIoU por clase:")
+    for c, iou_val in test_iou.items():
+        nombre = cnf.class_names.get(c, f"Clase {c}")
+        print(f"  {c}  {nombre:<25s}: {iou_val:.4f}")
 
     # 6. Guardar modelo final
     os.makedirs(cnf.dir_exp, exist_ok=True)
@@ -196,12 +224,12 @@ def entrenar(cnf):
     print(f"Modelo final guardado en {cnf.dir_exp}/modelo_final.pth")
 
     # 7. Graficar métricas
-    graficar_metricas(train_losses, val_losses, train_accs, val_accs,
+    graficar_metricas(train_losses, val_losses, train_accs, val_accs, val_mious,
                       len(train_losses), cnf.dir_exp)
-    
+
     # 8. Guardar métricas en archivo
-    guardar_metricas(train_losses, val_losses, train_accs, val_accs, test_loss,
-                     test_acc, len(train_losses), cnf.dir_exp)
+    guardar_metricas(train_losses, val_losses, train_accs, val_accs, val_mious,
+                     test_loss, test_acc, test_iou, len(train_losses), cnf.dir_exp)
 
     # 9. Guardar configuración
     cnf_dict = utils.obj2dict(Cnf)
@@ -212,37 +240,40 @@ def entrenar(cnf):
     print(f"Configuracion guardada en {config_path}")
     
     
-def graficar_metricas(train_losses, val_losses, train_accs, val_accs, epochs, exp_dir):
-    """
-    Grafica las pérdidas y precisiones de entrenamiento y validación
-    """
+def graficar_metricas(train_losses, val_losses, train_accs, val_accs, val_mious, epochs, exp_dir):
     epochs_range = range(1, epochs + 1)
-    
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
-    
-    # Gráfico de pérdidas
+
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(18, 5))
+
     ax1.plot(epochs_range, train_losses, 'b-', label='Train Loss', linewidth=2)
     ax1.plot(epochs_range, val_losses, 'r-', label='Val Loss', linewidth=2)
     ax1.set_xlabel('Época')
-    ax1.set_ylabel('Pérdida (Loss)')
+    ax1.set_ylabel('Loss')
     ax1.set_title('Evolución de la Pérdida')
     ax1.legend()
     ax1.grid(True, alpha=0.3)
-    
-    # Gráfico de precisiones
+
     ax2.plot(epochs_range, train_accs, 'b-', label='Train Acc', linewidth=2)
     ax2.plot(epochs_range, val_accs, 'r-', label='Val Acc', linewidth=2)
     ax2.set_xlabel('Época')
-    ax2.set_ylabel('Precisión (Accuracy)')
-    ax2.set_title('Evolución de la Precisión')
+    ax2.set_ylabel('Accuracy')
+    ax2.set_title('Evolución del Accuracy (pixel)')
     ax2.legend()
     ax2.grid(True, alpha=0.3)
-    
+
+    ax3.plot(epochs_range, val_mious, 'g-', label='Val mIoU', linewidth=2)
+    ax3.set_xlabel('Época')
+    ax3.set_ylabel('mIoU')
+    ax3.set_title('Evolución del mIoU (val)')
+    ax3.set_ylim(0, 1)
+    ax3.legend()
+    ax3.grid(True, alpha=0.3)
+
     plt.tight_layout()
-    
-    # Guardar figura
+
     os.makedirs(f"{exp_dir}/fig", exist_ok=True)
     plt.savefig(f"{exp_dir}/fig/metricas_entrenamiento.png", dpi=300, bbox_inches='tight')
+    plt.close()
     print(f"Gráfico guardado en {exp_dir}/fig/metricas_entrenamiento.png")
     
 def early_stopping(val_loss, best_val_loss, patience_counter, patience, epoch):
@@ -259,47 +290,45 @@ def early_stopping(val_loss, best_val_loss, patience_counter, patience, epoch):
     
     return should_stop, best_val_loss, patience_counter
 
-def guardar_metricas(train_losses, val_losses, train_accs, val_accs, test_loss, test_acc, epochs, exp_dir):
-    """
-    Guarda las métricas en un archivo .npz para análisis posterior
-    """
+def guardar_metricas(train_losses, val_losses, train_accs, val_accs, val_mious,
+                     test_loss, test_acc, test_iou, epochs, exp_dir):
     metricas = {
         'train_losses': np.array(train_losses),
         'val_losses': np.array(val_losses),
         'train_accs': np.array(train_accs),
         'val_accs': np.array(val_accs),
+        'val_mious': np.array(val_mious),
         'test_loss': test_loss,
         'test_acc': test_acc,
+        'test_miou': np.mean(list(test_iou.values())),
+        'test_iou_clases': np.array(list(test_iou.values())),
         'epochs': epochs,
-        'best_val_acc': max(val_accs),
-        'best_val_epoch': np.argmax(val_accs) + 1
+        'best_val_miou': max(val_mious),
+        'best_val_miou_epoch': np.argmax(val_mious) + 1,
     }
-    
+
     np.savez(f"{exp_dir}/metricas_entrenamiento.npz", **metricas)
     print(f"Metricas guardadas en {exp_dir}/metricas_entrenamiento.npz")
-    
-    # Mostrar resumen
+
     print("\n--- Resumen del Entrenamiento ---")
-    print(f"Mejor precisión de validación: {max(val_accs):.4f} en época {np.argmax(val_accs) + 1}")
-    print(f"Test Accuracy: {test_acc:.4f}")
+    print(f"Mejor mIoU de validación: {max(val_mious):.4f} en época {np.argmax(val_mious) + 1}")
+    print(f"Test Accuracy: {test_acc:.4f} | Test mIoU: {metricas['test_miou']:.4f}")
     print(f"Test Loss: {test_loss:.4f}")
 
-def cargar_y_graficar_metricas(exp_dir,ruta_metricas="metricas_entrenamiento.npz"):
-    """
-    Función auxiliar para cargar métricas guardadas y graficarlas
-    """
+def cargar_y_graficar_metricas(exp_dir, ruta_metricas="metricas_entrenamiento.npz"):
     data = np.load(ruta_metricas, allow_pickle=True)
-    
+
     train_losses = data['train_losses']
     val_losses = data['val_losses']
     train_accs = data['train_accs']
     val_accs = data['val_accs']
+    val_mious = data['val_mious']
     epochs = int(data['epochs'])
-    
+
     print(f"Cargadas métricas de {epochs} épocas")
-    print(f"Mejor val acc: {data['best_val_acc']:.4f} en época {data['best_val_epoch']}")
-    
-    graficar_metricas(train_losses, val_losses, train_accs, val_accs, epochs, exp_dir)
+    print(f"Mejor val mIoU: {data['best_val_miou']:.4f} en época {data['best_val_miou_epoch']}")
+
+    graficar_metricas(train_losses, val_losses, train_accs, val_accs, val_mious, epochs, exp_dir)
 
 if __name__ == "__main__":
     cnf = Cnf()    
