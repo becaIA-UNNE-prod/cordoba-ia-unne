@@ -76,7 +76,7 @@ def generar_composiciones_mensuales(tile_id, ruta_base_s2, dir_salida, max_worke
 if __name__ == "__main__":
     TILE_PRUEBA = "T20JLL"
     BASE_S2 = "/mnt/yacy_1/prod/ferreyra/sentinel2_cordoba"
-    DIR_COMPOSITES = "./dataset/composites"
+    DIR_COMPOSITES = "/mnt/yacy_1/prod/ferreyra/dataset/composites"
 
     # Si quieres limitar el uso de CPU (ej. a 4 núcleos), cambia max_workers=4
     generar_composiciones_mensuales(TILE_PRUEBA, BASE_S2, DIR_COMPOSITES, max_workers=None)

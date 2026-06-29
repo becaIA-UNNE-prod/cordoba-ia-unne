@@ -89,13 +89,28 @@ def entrenar(cnf):
 
     print(f"Splits -> Train: {len(train_dataset)} | Val: {len(val_dataset)} | Test: {len(test_dataset)}")
 
-    train_loader = DataLoader(train_dataset, batch_size=cnf.batch_size, shuffle=True)
-    val_loader = DataLoader(val_dataset, batch_size=cnf.batch_size, shuffle=False)
-    test_loader = DataLoader(test_dataset, batch_size=cnf.batch_size, shuffle=False)
+    train_loader = DataLoader(train_dataset, batch_size=cnf.batch_size, shuffle=True,
+                              num_workers=4, pin_memory=True)
+    val_loader   = DataLoader(val_dataset,   batch_size=cnf.batch_size, shuffle=False,
+                              num_workers=4, pin_memory=True)
+    test_loader  = DataLoader(test_dataset,  batch_size=cnf.batch_size, shuffle=False,
+                              num_workers=4, pin_memory=True)
 
     # 3. Crear modelo
     model = SimpleUNet(in_channels, cnf.num_classes).to(cnf.device)
-    criterion = nn.CrossEntropyLoss(ignore_index=0)
+
+    # Pesos inversamente proporcionales a la frecuencia de cada clase en train
+    class_counts = torch.zeros(cnf.num_classes)
+    for _, y in DataLoader(train_dataset, batch_size=64):
+        for c in range(cnf.num_classes):
+            class_counts[c] += (y == c).sum()
+    class_counts[0] = 1  # evita división por cero; igual se ignora
+    class_weights = 1.0 / class_counts
+    class_weights[0] = 0.0
+    class_weights = (class_weights / class_weights[1:].sum()).to(cnf.device)
+    print("Pesos de clase:", class_weights)
+
+    criterion = nn.CrossEntropyLoss(ignore_index=0, weight=class_weights)
     optimizer = optim.Adam(model.parameters(), lr=cnf.learning_rate)
 
     # Inicializar early stopping
@@ -189,7 +204,7 @@ def entrenar(cnf):
                      test_acc, len(train_losses), cnf.dir_exp)
 
     # 9. Guardar configuración
-    cnf_dict = utils.obs2dict(Cnf)
+    cnf_dict = utils.obj2dict(Cnf)
     config_path = f"{cnf.dir_exp}/config.txt"
     with open(config_path, 'w') as f:
         for key, value in cnf_dict.items():
