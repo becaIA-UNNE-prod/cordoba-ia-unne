@@ -191,53 +191,73 @@ def visualizar_matriz_confusion(target, prediccion, dir_exp, class_names=None, i
     plt.close()
     
 
-def inference_y_visualizar(cnf, model, dataset, test_indices, posiciones_parches, 
+def inference_y_visualizar(cnf, model, dataset, test_indices, local_indices, posiciones_parches,
                            class_names=None, ignore_class=0):
-    """Ejecuta la inferencia aislando perfectamente el espacio muestral del set de test."""
+    """Ejecuta la inferencia aislando perfectamente el espacio muestral del set de test.
+
+    `test_indices` son indices globales del dataset multi-tile (para pedirle el
+    parche a `dataset`); `local_indices` son los indices dentro del tile que se
+    esta reconstruyendo (para buscar la posicion en `posiciones_parches`, que es
+    por tile). Ambas listas deben venir ya filtradas a un unico tile: reconstruir
+    un lienzo con parches de tiles distintos no tiene sentido geografico.
+    """
     device = cnf.device
     model.eval()
-    
+
     alto = cnf.alto
     ancho = cnf.ancho
     size = cnf.size_parche
-    
+
     # CORRECCIÓN: Inicializar con -1 evita que las áreas que no son de test se confundan con la clase 0
     target_test = np.full((alto, ancho), fill_value=-1, dtype=np.int64)
     prediccion = np.full((alto, ancho), fill_value=-1, dtype=np.int64)
-    
+
     print(f"Prediciendo {len(test_indices)} parches de test...")
-    
+
     with torch.no_grad():
-        for idx in test_indices:
-            x_pos, y_pos = posiciones_parches[idx]
-            
+        for idx, local_idx in zip(test_indices, local_indices):
+            x_pos, y_pos = posiciones_parches[local_idx]
+
             parche_x, parche_y = dataset[idx]
             parche_x = parche_x.unsqueeze(0).to(device)
-            
+
             output = model(parche_x)
             _, pred = torch.max(output, dim=1)
             pred = pred.squeeze(0).cpu().numpy()
-            
+
             target_test[y_pos:y_pos+size, x_pos:x_pos+size] = parche_y.numpy()
             prediccion[y_pos:y_pos+size, x_pos:x_pos+size] = pred
-    
+
     # Ejecutar la función de comparación (esta debe manejar target != -1 como la zona válida de test)
     diferencias = visualizar_comparacion(target_test, prediccion, cnf.dir_exp, ignore_class)
     visualizar_matriz_confusion(target_test, prediccion, cnf.dir_exp, class_names, ignore_class)
-    
+
     return target_test, prediccion
 
-def cargar_modelo_y_predecir(cnf):
-    """Carga el modelo entrenado y ejecuta la inferencia usando la leyenda oficial de QGIS."""
+def cargar_modelo_y_predecir(cnf, tile=None):
+    """Carga el modelo entrenado y ejecuta la inferencia usando la leyenda oficial de QGIS.
+
+    El dataset de test puede mezclar parches de varios tiles (cnf.tiles), pero
+    la reconstruccion visual del mapa es por-tile (cada tile es una grilla
+    geografica distinta). `tile` elige cual reconstruir; por default el primero
+    de cnf.tiles.
+    """
+    if tile is None:
+        tile = cnf.tiles[0]
+    if tile not in cnf.tiles:
+        raise ValueError(f"'{tile}' no esta en cnf.tiles ({cnf.tiles})")
+
     model_path = f"{cnf.dir_exp}/best_model.pth"
     test_indices_path = f"{cnf.dir_exp}/test_indices.npy"
-    dat_path = os.path.dirname(cnf.file_dataset)
-    posiciones_path = f"{dat_path}/posiciones_parches.npy"
-    
+    posiciones_path = os.path.join(cnf.dir_dataset, f"posiciones_{tile}.npy")
+
     test_indices = np.load(test_indices_path)
     posiciones_parches = np.load(posiciones_path)
-    
-    dataset = CordobaDataset(cnf.file_dataset, normalizar=cnf.normalizar, label_map=cnf.label_remap)
+
+    # Mismo dir_dataset + tiles que en el entrenamiento: reproduce exactamente
+    # el mismo dataset (y por lo tanto los mismos indices globales) que generó
+    # test_indices.npy.
+    dataset = CordobaDataset(cnf.dir_dataset, cnf.tiles, normalizar=cnf.normalizar, label_map=cnf.label_remap)
     muestra_x, _ = dataset[0]
     in_channels = muestra_x.shape[0]
 
@@ -249,12 +269,27 @@ def cargar_modelo_y_predecir(cnf):
     print("Modelo cargado correctamente")
 
     class_names = cnf.class_names
-    
+
+    # Filtrar los indices de test al tile pedido y traducirlos a indice local
+    # (el que usa posiciones_<tile>.npy).
+    test_indices_tile = []
+    local_indices_tile = []
+    for idx in test_indices:
+        tile_id, local_idx = dataset.tile_de_indice(int(idx))
+        if tile_id == tile:
+            test_indices_tile.append(int(idx))
+            local_indices_tile.append(local_idx)
+
+    print(f"Reconstruyendo tile '{tile}': {len(test_indices_tile)} de {len(test_indices)} "
+          f"parches de test pertenecen a este tile.")
+    if not test_indices_tile:
+        print(f"Advertencia: ningun parche de test pertenece al tile '{tile}'.")
+
     target_test, prediccion = inference_y_visualizar(
-        cnf, model, dataset, test_indices, posiciones_parches, 
+        cnf, model, dataset, test_indices_tile, local_indices_tile, posiciones_parches,
         class_names=class_names, ignore_class=0
     )
-    
+
     return target_test, prediccion
 
 
@@ -329,13 +364,15 @@ if __name__ == "__main__":
     parser.add_argument("--composites", default=None, help="Directorio de composites mensuales (modo mapa)")
     parser.add_argument("--mascara", default=None, help="Ruta al TIF de referencia espacial (modo mapa)")
     parser.add_argument("--salida", default=None, help="Ruta de salida del GeoTIFF (modo mapa)")
-    parser.add_argument("--tile", default=None, help="Prefijo del tile a filtrar en composites (modo mapa)")
+    parser.add_argument("--tile", default=None,
+                        help="Tile a reconstruir/filtrar (modo test: uno de cnf.tiles, default el primero; "
+                             "modo mapa: prefijo a filtrar en composites)")
     args = parser.parse_args()
 
     cnf = Cnf()
 
     if args.modo == "test":
-        target_test, prediccion = cargar_modelo_y_predecir(cnf)
+        target_test, prediccion = cargar_modelo_y_predecir(cnf, tile=args.tile)
         print("\n¡Inference completada!")
         print(f"Resultados guardados en {cnf.dir_exp}")
 

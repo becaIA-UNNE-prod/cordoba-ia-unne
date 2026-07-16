@@ -17,20 +17,22 @@ Sentinel-2 (raw .jp2)
   → Salida: {tile}_{YYYYMM}_median.tif  (4 bandas: B02, B03, B04, B08)
         │
         ▼
-03_extraer_parches.py
+03_extraer_parches.py  (uno o varios tiles, ver Cnf.tiles)
   → Recorte de parches 256×256 px con sliding window (sin overlap)
   → Descarta parches sin etiquetas (solo ceros)
   → Apila todos los meses: forma final (Meses × 4, 256, 256)
-  → Salida: X_{tile}_{n}.npy  /  Y_{tile}_{n}.npy
+  → Salida por tile (sin comprimir, para poder abrir con mmap):
+      X_{tile}.npy, Y_{tile}.npy, meta_{tile}.npz, posiciones_{tile}.npy
         │
         ▼
-04_split_dataset.py
-  → Divide en Train / Val / Test
-  → Genera split_index.json con las listas de archivos por split
-        │
-        ▼
-1_train.py  →  SimpleUNet  →  pesos/modelo_cordoba_test.pth
+1_train.py
+  → CordobaDataset abre todos los tiles de Cnf.tiles con mmap_mode='r'
+    (RAM acotada al tamaño de un batch, no al tamaño de los tiles)
+  → Split aleatorio Train / Val / Test (70/15/15) sobre el dataset combinado
+  → SimpleUNet  →  {dir_exp}/best_model.pth, modelo_final.pth
 ```
+
+**Por qué `.npy` y no `.npz` para X/Y:** un `.npz` (comprimido o no) no soporta memory-mapping en numpy — acceder a `data['X']` siempre descomprime el array completo a RAM. Con un solo tile chico eso entraba en memoria sin problema; para entrenar con varios tiles a la vez hace falta que cada `__getitem__` traiga a RAM solo el parche pedido, y eso solo lo permite un `.npy` sin comprimir abierto con `mmap_mode='r'`. `meta_{tile}.npz` sigue siendo `.npz` porque solo guarda strings (meses, tile_id), es chico y no necesita mmap.
 
 ---
 
@@ -152,12 +154,13 @@ Las **skip connections** concatenan feature maps del encoder con los del decoder
 | Archivo | Rol |
 |---|---|
 | `utils/model.py` | Definición de `DoubleConv` y `SimpleUNet` |
-| `utils/dataset.py` | `CordobaDataset` — carga y normaliza parches `.npy` |
-| `src/02_temporal_median_composites.py` | Genera composites mensuales desde imágenes Sentinel-2 raw |
-| `src/03_extraer_parches.py` | Extrae parches 256×256 y los guarda como `.npy` |
-| `src/04_split_dataset.py` | Divide parches en train/val/test y genera el índice |
-| `src/1_train.py` | Bucle de entrenamiento, validación y evaluación final |
-| `src/2_inferencia.py` | Inferencia sobre nuevos composites |
+| `utils/dataset.py` | `CordobaDataset` — dataset multi-tile, abre `X_<tile>.npy`/`Y_<tile>.npy` con mmap, normaliza y remapea etiquetas |
+| `src/01_moldear_mascaras.py` | Reproyecta la máscara de etiquetas a la grilla Sentinel-2, por tile |
+| `src/02_temporal_median_composites.py` | Genera composites mensuales desde imágenes Sentinel-2 raw, por tile |
+| `src/03_extraer_parches.py` | Extrae parches 256×256 por tile y los guarda como `.npy` (mmap-eables) + metadata |
+| `src/1_train.py` | Bucle de entrenamiento (sobre `Cnf.tiles`), validación y evaluación final |
+| `src/2_infer.py` | Inferencia: `--modo test` (parches de test, por tile) o `--modo mapa` (GeoTIFF de un tile completo) |
+| `test/test_dataset.py` | Test de humo de `CordobaDataset` con tiles sintéticos, sin depender del servidor |
 
 ---
 
@@ -166,7 +169,7 @@ Las **skip connections** concatenan feature maps del encoder con los del decoder
 | Directorio | Contenido |
 |---|---|
 | `/mnt/yacy_1/prod/ferreyra/sentinel2_cordoba_2017_2018/` | Imágenes Sentinel-2 raw (.jp2) organizadas por tile y fecha |
-| `/mnt/yacy_1/prod/ferreyra/dataset/composites/` | Composites mensuales (.tif, 4 bandas) |
-| `/mnt/yacy_1/prod/ferreyra/dataset/train/` | Parches de entrenamiento (X_*.npy, Y_*.npy) |
-| `/mnt/yacy_1/prod/ferreyra/dataset/split_index.json` | Índice con listas de archivos por split |
-| `./pesos/modelo_cordoba_test.pth` | Pesos guardados tras el entrenamiento |
+| `/mnt/yacy_1/prod/ferreyra/dataset/etiquetas/` | Máscaras reproyectadas (`etiqueta_<tile>.npz`), una por tile |
+| `/mnt/yacy_1/prod/ferreyra/dataset/composites/` | Composites mensuales (.tif, 4 bandas), por tile y mes |
+| `/mnt/yacy_1/prod/ferreyra/dataset/train/` | Parches de entrenamiento: `X_<tile>.npy`, `Y_<tile>.npy`, `meta_<tile>.npz`, `posiciones_<tile>.npy` |
+| `{Cnf.dir_exp}/` | Pesos y métricas del experimento (`best_model.pth`, `modelo_final.pth`, `metricas_entrenamiento.npz`, `config.txt`) |

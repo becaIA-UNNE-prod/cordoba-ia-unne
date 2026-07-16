@@ -1,10 +1,33 @@
 import os
+import sys
+import argparse
 import numpy as np
 import rasterio
 from rasterio.windows import Window
 import time
 
+sys.path.append(os.path.abspath("../"))
+from cnf import Cnf
+
+
 def extraer_parches_desde_composites(tile_id, ruta_mascara, dir_composites, dir_salida, size=256, step=None):
+    """
+    Extrae parches de un unico tile y los guarda como:
+        X_<tile_id>.npy       (N, meses*bandas, size, size) float32
+        Y_<tile_id>.npy       (N, size, size)               int64
+        meta_<tile_id>.npz    meses, tile_id, n_samples (metadata liviana)
+        posiciones_<tile_id>.npy  (N, 2) coordenadas (x, y) de cada parche
+
+    X/Y se guardan sin comprimir (np.save, no np.savez_compressed) para que
+    utils/dataset.py pueda abrirlos con mmap_mode='r' y entrenar con varios
+    tiles sin cargarlos todos a RAM. Ver utils/dataset.py para el detalle.
+
+    Las posiciones se arman en el mismo recorrido que descarta los parches
+    sin etiquetas, para que posiciones_<tile_id>.npy[i] corresponda siempre
+    a X_<tile_id>.npy[i] / Y_<tile_id>.npy[i] (antes se generaban por
+    separado asumiendo que ningun parche se descartaba, lo cual desalineaba
+    los indices apenas habia parches vacios).
+    """
     os.makedirs(dir_salida, exist_ok=True)
 
     if step is None:
@@ -19,8 +42,9 @@ def extraer_parches_desde_composites(tile_id, ruta_mascara, dir_composites, dir_
 
     parches_x = []
     parches_y = []
+    posiciones = []
 
-    # Cargar máscara desde .npz o .tif
+    # Cargar mascara desde .npz o .tif
     if ruta_mascara.endswith('.npz'):
         data = np.load(ruta_mascara, allow_pickle=True)
         etiquetas_full = data['etiquetas']
@@ -35,7 +59,7 @@ def extraer_parches_desde_composites(tile_id, ruta_mascara, dir_composites, dir_
     n_parches_y = (alto - size) // step + 1
     total_posibles = n_parches_x * n_parches_y
 
-    print(f"Recorriendo {n_parches_x}×{n_parches_y} = {total_posibles:,} parches...")
+    print(f"[{tile_id}] Recorriendo {n_parches_x}x{n_parches_y} = {total_posibles:,} parches...")
 
     start_time = time.time()
 
@@ -57,72 +81,94 @@ def extraer_parches_desde_composites(tile_id, ruta_mascara, dir_composites, dir_
             parche_x = np.concatenate(parche_x_temporal, axis=0)
             parches_x.append(parche_x.astype(np.float32))
             parches_y.append(parche_y.astype(np.int64))
+            posiciones.append((x, y))
             contador_parches += 1
             if contador_parches % 50 == 0:
                 elapsed = time.time() - start_time
-                print(f" Procesados {contador_parches} parches en {elapsed:.1f}s...")
-                          
+                print(f"[{tile_id}] Procesados {contador_parches} parches en {elapsed:.1f}s...")
+
     if contador_parches == 0:
-        print(f"Advertencia: No se encontraron parches con cultivos")
+        print(f"[{tile_id}] Advertencia: No se encontraron parches con cultivos")
         return None
-    
+
     X = np.stack(parches_x, axis=0)
     Y = np.stack(parches_y, axis=0)
-    
-    os.makedirs(dir_salida, exist_ok=True)
-    ruta_salida = os.path.join(dir_salida, f"dataset_{tile_id}.npz")
-    np.savez_compressed(ruta_salida, X=X, Y=Y, meses=archivos_mensuales, tile_id=tile_id)
-    
-    print(f"Guardados {contador_parches} parches en {ruta_salida}")
-    return ruta_salida
-# crear_posiciones.py
-import numpy as np
-import os
 
-def crear_posiciones(dir_salida, size=256, step=192, alto=10980, ancho=10980):
-    """
-    Crea el archivo posiciones_parches.npy manualmente
-    Asume que los parches se extrajeron en orden de escaneo
-    """
-    posiciones = []
-    for y in range(0, alto - size, step):
-        for x in range(0, ancho - size, step):
-            posiciones.append((x, y))
-    
     os.makedirs(dir_salida, exist_ok=True)
-    np.save(os.path.join(dir_salida, "posiciones_parches.npy"), np.array(posiciones))
-    print(f"Posiciones guardadas en {dir_salida}/posiciones_parches.npy")
-    print(f"Total: {len(posiciones)} posiciones")
+    paths = Cnf.paths_tile(tile_id, dir_dataset=dir_salida)
 
-    
-def cargar_dataset(ruta_npz):
-    data = np.load(ruta_npz, allow_pickle=True)
-    X = data['X']
-    Y = data['Y']
-    meses = data['meses']
-    tile_id = str(data['tile_id'])
-    return X, Y, meses, tile_id
+    np.save(paths["x"], X)
+    np.save(paths["y"], Y)
+    np.savez(paths["meta"], meses=archivos_mensuales, tile_id=tile_id, n_samples=contador_parches)
+    np.save(paths["posiciones"], np.array(posiciones, dtype=np.int64))
+
+    print(f"[{tile_id}] Guardados {contador_parches} parches:")
+    print(f"  {paths['x']}")
+    print(f"  {paths['y']}")
+    print(f"  {paths['meta']}")
+    print(f"  {paths['posiciones']}")
+    return paths
+
+
+def cargar_dataset_tile(tile_id, dir_dataset):
+    """ Carga a memoria un tile ya extraido (util para inspeccionar / debug, no para entrenar). """
+    paths = Cnf.paths_tile(tile_id, dir_dataset=dir_dataset)
+    X = np.load(paths["x"])
+    Y = np.load(paths["y"])
+    meta = np.load(paths["meta"], allow_pickle=True)
+    return X, Y, meta['meses'], str(meta['tile_id'])
+
 
 if __name__ == "__main__":
-    
-    BASE_DIR = "/mnt/yacy_1/prod/ferreyra/dataset"
-    TILE_PRUEBA = "T20JLL"
-    RUTA_MASCARA = f"{BASE_DIR}/etiquetas/etiqueta_T20JLL.npz"
-    DIR_COMPOSITES = f"{BASE_DIR}/composites"
-    DIR_DATASET = f"{BASE_DIR}/train"
-    crear_posiciones(DIR_DATASET, size=256, step=256)
-    archivo_salida = extraer_parches_desde_composites(
-        TILE_PRUEBA, 
-        RUTA_MASCARA, 
-        DIR_COMPOSITES, 
-        DIR_DATASET,
-        size=256,
-        step=256
+    cnf = Cnf()
+
+    parser = argparse.ArgumentParser(
+        description="Paso 3: extrae parches 256x256 (sliding window, sin overlap) de uno o varios "
+                    "tiles ya compuestos y los guarda en formato mmap-eable (.npy) listo para "
+                    "entrenar. Salida por tile: X_<tile>.npy, Y_<tile>.npy, meta_<tile>.npz, "
+                    "posiciones_<tile>.npy",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    
-    if archivo_salida:
-        X, Y, meses, tile = cargar_dataset(archivo_salida)
-        print(f"X shape: {X.shape}")
-        print(f"Y shape: {Y.shape}")
-        print(f"Meses: {len(meses)}")
-        
+    parser.add_argument("--tiles", nargs="+", default=cnf.tiles,
+                        help="Tiles a extraer. Si no se pasa, usa Cnf.tiles")
+    parser.add_argument("--etiquetas-dir", default=f"{cnf.base_dir}/etiquetas",
+                        help="Directorio con etiqueta_<tile>.npz por tile")
+    parser.add_argument("--composites-dir", default=f"{cnf.base_dir}/composites",
+                        help="Directorio con los composites mensuales por tile")
+    parser.add_argument("--dir-salida", default=cnf.dir_dataset,
+                        help="Directorio de salida de los parches (Cnf.dir_dataset)")
+    parser.add_argument("--size", type=int, default=cnf.size_parche,
+                        help="Tamano de parche en px")
+    parser.add_argument("--step", type=int, default=cnf.step_parche,
+                        help="Paso del sliding window en px")
+    parser.add_argument("--force", action="store_true",
+                        help="Reextrae un tile aunque X_<tile>.npy ya exista")
+    args = parser.parse_args()
+
+    # Corriendo esto de nuevo con --tiles ampliado (o Cnf.tiles ampliado y sin
+    # --tiles) solo extrae los tiles nuevos: los que ya tienen X_<tile>.npy se
+    # saltean salvo que se pase --force.
+    for tile_id in args.tiles:
+        paths_tile = Cnf.paths_tile(tile_id, dir_dataset=args.dir_salida)
+
+        if os.path.exists(paths_tile["x"]) and not args.force:
+            print(f"[{tile_id}] Ya existe {paths_tile['x']}, se salta (usar --force para reextraer).")
+            continue
+
+        ruta_mascara = os.path.join(args.etiquetas_dir, f"etiqueta_{tile_id}.npz")
+        if not os.path.exists(ruta_mascara):
+            print(f"[{tile_id}] Error: no se encontro la mascara {ruta_mascara}, se salta este tile.")
+            continue
+
+        resultado = extraer_parches_desde_composites(
+            tile_id,
+            ruta_mascara,
+            args.composites_dir,
+            args.dir_salida,
+            size=args.size,
+            step=args.step,
+        )
+
+        if resultado:
+            X, Y, meses, tile = cargar_dataset_tile(tile_id, args.dir_salida)
+            print(f"[{tile}] X shape: {X.shape} | Y shape: {Y.shape} | Meses: {len(meses)}")

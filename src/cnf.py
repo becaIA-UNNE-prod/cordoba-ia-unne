@@ -7,9 +7,31 @@ class Cnf:
     """ Todos los parametros de configuracion van aqui """
     # Datos
     base_dir = "/mnt/yacy_1/prod/ferreyra/dataset"
-    file_dataset = f"{base_dir}/train/dataset_T20JLL.npz"
+    dir_dataset = f"{base_dir}/train"
     dir_exp = f"{base_dir}/exp7"
-        
+
+    # Tiles usados para entrenar. Cada tile debe tener sus parches ya
+    # extraidos en dir_dataset (ver src/03_extraer_parches.py) como:
+    #   X_<tile>.npy, Y_<tile>.npy, meta_<tile>.npz, posiciones_<tile>.npy
+    # Para entrenar con mas de un tile, simplemente agregarlo a esta lista
+    # una vez que su extraccion haya terminado. Todos los tiles deben cubrir
+    # los mismos meses (mismo numero de canales), si no el entrenamiento
+    # falla con un error explicito al construir el dataset.
+    tiles = ["T20JLL"]
+
+    @staticmethod
+    def paths_tile(tile_id, dir_dataset=None):
+        """ Rutas de los archivos de un tile ya extraido. Usado tanto por
+        03_extraer_parches.py (al escribir) como por utils/dataset.py (al leer),
+        para que la convencion de nombres viva en un solo lugar. """
+        d = dir_dataset if dir_dataset is not None else Cnf.dir_dataset
+        return {
+            "x": os.path.join(d, f"X_{tile_id}.npy"),
+            "y": os.path.join(d, f"Y_{tile_id}.npy"),
+            "meta": os.path.join(d, f"meta_{tile_id}.npz"),
+            "posiciones": os.path.join(d, f"posiciones_{tile_id}.npy"),
+        }
+
     # Remapeo de etiquetas originales (0-27) a esquema de 9 clases:
     #   0 = NoData
     #   1 = Natural          (1-10: monte, arbustales, pastizal, suelo desnudo, rocas, salina, agua, anegables, cursos de agua, ...)
